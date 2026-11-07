@@ -3,6 +3,7 @@ package com.facefirst.applock.ui
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -52,7 +53,9 @@ fun AppsScreen(
     vm: AppsViewModel = viewModel(),
 ) {
     val s by vm.state.collectAsState()
-    Column(Modifier.fillMaxSize().padding(16.dp)) {
+    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp)) {
+      item {
+      Column {
         if (protectionOn) {
             Text(stringResource(R.string.protection_on), color = MaterialTheme.colorScheme.primary)
         } else {
@@ -104,12 +107,14 @@ fun AppsScreen(
             TextButton(onClick = { vm.setAllVisible(true) }) { Text(stringResource(R.string.lock_all_visible)) }
             TextButton(onClick = { vm.setAllVisible(false) }) { Text(stringResource(R.string.unlock_all_visible)) }
         }
+      }
+      }
         if (s.loading) {
-            CircularProgressIndicator()
+            item { CircularProgressIndicator() }
         } else if (s.apps.isEmpty()) {
-            Text(stringResource(R.string.no_apps))
+            item { Text(stringResource(R.string.no_apps)) }
         } else {
-            LazyColumn {
+            run {
                 items(s.apps, key = { it.packageName }) { app ->
                     val ctx = LocalContext.current
                     val icon by produceState<androidx.compose.ui.graphics.ImageBitmap?>(null, app.packageName) {

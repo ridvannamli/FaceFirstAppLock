@@ -51,7 +51,7 @@ class MainActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE) // ekran görüntüsü/son uygulamalar önizlemesi engellenir
+        if (!BuildConfig.DEBUG) window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE) // ekran görüntüsü/son uygulamalar önizlemesi engellenir
         setContent {
             MaterialTheme(colorScheme = if (isSystemInDarkTheme()) darkColorScheme() else lightColorScheme()) {
                 Surface(Modifier.safeDrawingPadding()) {
@@ -117,6 +117,7 @@ class MainActivity : FragmentActivity() {
             BiometricPrompt.PromptInfo.Builder()
                 .setTitle(getString(R.string.locked_title))
                 .setAllowedAuthenticators(BIOMETRIC_WEAK)
+                .setConfirmationRequired(false)
                 .setNegativeButtonText(getString(R.string.use_pin)).build()
         )
     }

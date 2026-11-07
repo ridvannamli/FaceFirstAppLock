@@ -18,3 +18,8 @@ Otomatik (birim/enstrümantasyon): PIN türetme/bekleme, durum makinesi, politik
 - FAZ 9 düzeltmeleri: kilit ekranı açıkken başka kilitli uygulamaya geçilince eski hedefe dönme hatası (onNewIntent), eksik uygulama ikonu, yedekleme kuralları, kullanılmayan kaynaklar.
 ## Manuel (gerçek cihaz) testler
 Adım adım yönergeler: docs/DEVICE_TEST_GUIDE.md. Hepsi: Gerçek cihaz testi bekleniyor.
+## İlk cihaz geri bildirimi (Samsung, 0.1.0)
+- AVG heuristik "şüpheli" uyarısı verdi (imzasız/yeni APK + erişilebilirlik); uygulama kurulabildi.
+- Hata: uygulama listesi yalnız ilk uygulamayı (Adidas) gösterdi → kök neden: sabit yükseklikli ekranda 14 üst bilgi öğesi liste alanını bırakmadı. Düzeltme 0.1.1 (tek LazyColumn); cihazda DOĞRULANMADI.
+- İstek: yüzde "onayla" adımı kalksın → setConfirmationRequired(false) (0.1.1). Yüz/parmak izi seçimini uygulama belirleyemez (Android sınırı).
+- Ekran görüntüsü alınamadı → FLAG_SECURE; 0.1.1 debug sürümünde kapalı.

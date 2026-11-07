@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
+import com.facefirst.applock.BuildConfig
 import com.facefirst.applock.R
 import com.facefirst.applock.data.PinRepository
 import com.facefirst.applock.data.PinResult
@@ -54,7 +55,7 @@ class UnlockActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
+        if (!BuildConfig.DEBUG) window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
         target = intent.getStringExtra(EXTRA_PACKAGE) ?: run { goHome(); return }
         lifecycleScope.launch { pinLen = repo.pinLength.first() }
         setContent {
@@ -120,6 +121,7 @@ class UnlockActivity : FragmentActivity() {
             BiometricPrompt.PromptInfo.Builder()
                 .setTitle(getString(R.string.locked_title))
                 .setAllowedAuthenticators(BIOMETRIC_WEAK)
+                .setConfirmationRequired(false)
                 .setNegativeButtonText(getString(R.string.use_pin))
                 .build()
         )
