@@ -37,6 +37,7 @@ fun AppsScreen(
     protectionOn: Boolean,
     biometricStatus: BiometricStatus,
     onOpenA11ySettings: () -> Unit,
+    onChangePin: () -> Unit,
     vm: AppsViewModel = viewModel(),
 ) {
     val s by vm.state.collectAsState()
@@ -63,6 +64,7 @@ fun AppsScreen(
             pluralStringResource(R.plurals.locked_count, s.totalLocked, s.totalLocked),
             style = MaterialTheme.typography.titleMedium,
         )
+        TextButton(onClick = onChangePin) { Text(stringResource(R.string.change_pin)) }
         OutlinedTextField(
             value = s.query, onValueChange = vm::setQuery, singleLine = true,
             label = { Text(stringResource(R.string.search_hint)) },

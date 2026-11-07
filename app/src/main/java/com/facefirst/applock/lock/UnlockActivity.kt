@@ -23,20 +23,32 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.lifecycleScope
 import com.facefirst.applock.R
+import com.facefirst.applock.data.PinRepository
+import com.facefirst.applock.data.PinResult
+import com.facefirst.applock.ui.PinPad
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 /**
- * Önce biyometrik (BiometricPrompt; yüz/parmak izi, sistemin sunduğu). Yedek ekran (FAZ 5'e kadar)
- * geçici bir test düğmesidir ve PIN gelince kaldırılacak; o zamana dek gerçek koruma SAĞLAMAZ.
+ * Önce biyometrik (BiometricPrompt; yüz/parmak izi, sistemin sunduğu), olmazsa uygulama PIN'i.
  */
 class UnlockActivity : FragmentActivity() {
     private lateinit var target: String
     private var showFallback by mutableStateOf(false)
     private var prompting = false
+    private var pinMsg by mutableStateOf<Int?>(null)
+    private var wait by mutableStateOf(0L)
+    private var resetKey by mutableStateOf(0)
+    private var pinLen by mutableStateOf(4)
+    private val repo by lazy { PinRepository.create(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         target = intent.getStringExtra(EXTRA_PACKAGE) ?: run { goHome(); return }
+        lifecycleScope.launch { pinLen = repo.pinLength.first() }
         setContent {
             BackHandler { goHome() }
             MaterialTheme {
@@ -48,9 +60,18 @@ class UnlockActivity : FragmentActivity() {
                     ) {
                         Text(stringResource(R.string.locked_title), style = MaterialTheme.typography.titleLarge)
                         if (showFallback) {
-                            Text(stringResource(R.string.stub_note), Modifier.padding(vertical = 16.dp))
-                            Button(onClick = { unlock() }) { Text(stringResource(R.string.stub_unlock)) }
-                            Button(onClick = { showFallback = false; prompt() }) { Text(stringResource(R.string.retry_biometric)) }
+                            pinMsg?.let {
+                                Text(
+                                    if (it == R.string.pin_locked) stringResource(it, wait / 1000 + 1) else stringResource(it),
+                                    color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(8.dp),
+                                )
+                            }
+                            Column(Modifier.padding(vertical = 16.dp)) {
+                                PinPad(pinLen, resetKey, enabled = wait <= 0L) { pin -> checkPin(pin) }
+                            }
+                            if (BiometricStatus.check(this@UnlockActivity).usable) {
+                                Button(onClick = { showFallback = false; prompt() }) { Text(stringResource(R.string.retry_biometric)) }
+                            }
                         }
                     }
                 }
@@ -83,6 +104,27 @@ class UnlockActivity : FragmentActivity() {
                 .setNegativeButtonText(getString(R.string.use_pin))
                 .build()
         )
+    }
+
+    private fun checkPin(pin: String) {
+        lifecycleScope.launch {
+            when (val r = repo.verify(pin)) {
+                is PinResult.Success -> unlock()
+                is PinResult.Wrong -> { pinMsg = if (r.retryAfterMs > 0) R.string.pin_locked else R.string.pin_wrong; startWait(r.retryAfterMs) }
+                is PinResult.Locked -> { pinMsg = R.string.pin_locked; startWait(r.retryAfterMs) }
+                PinResult.NotSet -> goHome()
+            }
+            resetKey++
+        }
+    }
+
+    private fun startWait(ms: Long) {
+        wait = ms
+        if (ms <= 0) return
+        lifecycleScope.launch {
+            while (wait > 0) { delay(1000); wait -= 1000 }
+            wait = 0; pinMsg = null
+        }
     }
 
     private fun unlock() {

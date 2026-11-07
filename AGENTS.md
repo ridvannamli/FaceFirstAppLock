@@ -2,6 +2,11 @@
 
 Bu belge, diğer kural belgeleriyle birlikte aynı `rules` klasöründe tutulur. Codex her görevde bu dosyayı, varsa `07_DURUM.md` dosyasını ve görevle ilgili kural belgesini okur.
 
+## PROJE İSTİSNASI (FaceFirstAppLock) — kullanıcı kararı, bu bölüm aşağıdaki çelişen kuralların ÜSTÜNDEDİR
+- FAZ 0-10 arasında planı/aşama geçişini ONAYA SUNMA; "uygula" izni bu proje için kalıcı verilmiştir.
+- Bir sonraki aşamaya geçmek için kullanıcıdan izin isteme; aşama sonu raporunu verip devam et.
+- Yalnızca şunlarda dur ve sor: gerçek telefon testi sonucu gerekirse (bildirim gönder, bağımsız işe devam et), aynı hatada 2 başarısız düzeltme, geri dönüşsüz/dış sistem işlemi, hesap/anahtar gerektiren adım.
+
 ## Ana hedef
 
 Mevcut projenin kapsamını koruyarak küçük, çalışan, doğrulanmış ve anlaşılır değişiklikler yapmak.

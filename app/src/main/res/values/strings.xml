@@ -12,8 +12,6 @@
     </plurals>
     <string name="a11y_description">Kilitli uygulamalardan birine geçildiğini algılar. Ekrandaki metin, mesaj veya şifre okunmaz; yalnızca açılan uygulamanın paket adı kullanılır.</string>
     <string name="locked_title">Bu uygulama kilitli</string>
-    <string name="stub_note">GEÇİCİ TEST EKRANI: gerçek doğrulama sonraki aşamada eklenecek.</string>
-    <string name="stub_unlock">Aç (test)</string>
     <string name="protection_off">Koruma kapalı: erişilebilirlik izni verilmedi.</string>
     <string name="protection_on">Koruma açık.</string>
     <string name="a11y_disclosure">Uygulama kilidi, hangi uygulamanın açıldığını anlamak için Erişilebilirlik servisini kullanır. Yalnızca açılan uygulamanın paket adı işlenir; ekran içeriği, mesaj ve şifreler okunmaz, hiçbir veri gönderilmez. İzni dilediğin zaman kapatabilirsin; kapatırsan koruma durur.</string>
@@ -24,4 +22,17 @@
     <string name="bio_weak">Biyometrik: yalnızca zayıf sınıf hazır; sistem izin verdiği ölçüde kullanılır.</string>
     <string name="bio_not_enrolled">Biyometrik: telefonda kayıtlı yüz/parmak izi yok. Sistem ayarlarından ekle.</string>
     <string name="bio_none">Biyometrik: bu cihazda desteklenmiyor veya şu an kullanılamıyor; PIN kullanılacak.</string>
+    <string name="pin_choose_length">PIN uzunluğunu seç</string>
+    <string name="pin_4">4 haneli</string>
+    <string name="pin_6">6 haneli</string>
+    <string name="pin_enter_current">Mevcut PIN</string>
+    <string name="pin_enter_new">Yeni PIN</string>
+    <string name="pin_confirm">PIN\'i tekrar gir</string>
+    <string name="pin_enter">PIN gir</string>
+    <string name="pin_wrong">PIN yanlış</string>
+    <string name="pin_mismatch">PIN\'ler eşleşmedi, yeniden dene</string>
+    <string name="pin_locked">Çok fazla yanlış deneme. %1$d sn sonra tekrar dene.</string>
+    <string name="cancel">Vazgeç</string>
+    <string name="change_pin">PIN değiştir</string>
+    <string name="setup_title">Önce bir PIN belirle</string>
 </resources>

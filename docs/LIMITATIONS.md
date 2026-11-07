@@ -5,3 +5,4 @@
 - Erişilebilirlik izni kaldırılırsa koruma durur; uygulama bunu bildirir.
 - Üretici pil optimizasyonu servisi öldürebilir.
 - E-posta kurtarma internet gerektirir.
+- PIN bekleme süresi duvar saatine dayanır; kullanıcı saati geri alarak beklemeyi atlayabilir. İyileştirme: SystemClock.elapsedRealtime + yeniden başlatma kontrolü (FAZ 8).

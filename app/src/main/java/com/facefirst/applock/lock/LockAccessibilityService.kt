@@ -8,11 +8,12 @@ import android.content.IntentFilter
 import android.view.accessibility.AccessibilityEvent
 import android.view.inputmethod.InputMethodManager
 import com.facefirst.applock.data.LockedAppsRepository
+import com.facefirst.applock.data.PinRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 /**
@@ -35,7 +36,12 @@ class LockAccessibilityService : AccessibilityService() {
             lockedProvider = { locked },
         )
         LockRuntime.serviceConnected = true
-        scope.launch { LockedAppsRepository(applicationContext).lockedPackages.collect { locked = it } }
+        scope.launch {
+            combine(
+                LockedAppsRepository(applicationContext).lockedPackages,
+                PinRepository.create(applicationContext).hasPin,
+            ) { apps, hasPin -> if (hasPin) apps else emptySet() }.collect { locked = it }
+        }
         registerReceiver(screenOff, IntentFilter(Intent.ACTION_SCREEN_OFF))
     }
 
