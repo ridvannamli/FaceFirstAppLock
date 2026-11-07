@@ -39,3 +39,7 @@ fun errorAction(code: Int): ErrorAction = when (code) {
     BiometricPrompt.ERROR_USER_CANCELED -> ErrorAction.GO_HOME
     else -> ErrorAction.SHOW_FALLBACK // negatif düğme, kilitlenme, donanım hatası, vb. → PIN'e düş
 }
+
+/** Biyometrik art arda bu kadar tanınmazsa istem kapatılır ve PIN ekranına geçilir. */
+const val MAX_BIO_FAILS = 2
+fun shouldFallBack(failures: Int, limit: Int = MAX_BIO_FAILS) = failures >= limit

@@ -108,9 +108,15 @@ class UnlockActivity : FragmentActivity() {
         if (prompting) return
         if (!BiometricStatus.check(this).usable) { showFallback = true; return }
         prompting = true
-        val bp = BiometricPrompt(this, ContextCompat.getMainExecutor(this), object : BiometricPrompt.AuthenticationCallback() {
+        var fails = 0
+        lateinit var bp: BiometricPrompt
+        bp = BiometricPrompt(this, ContextCompat.getMainExecutor(this), object : BiometricPrompt.AuthenticationCallback() {
             override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                 prompting = false; unlock()
+            }
+            override fun onAuthenticationFailed() {
+                // Yüz/parmak tanınmadı: birkaç denemeden sonra istemi kapat, PIN'e düş.
+                if (shouldFallBack(++fails)) bp.cancelAuthentication()
             }
             override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
                 prompting = false

@@ -5,6 +5,7 @@ import androidx.biometric.BiometricPrompt
 import com.facefirst.applock.lock.BiometricStatus
 import com.facefirst.applock.lock.ErrorAction
 import com.facefirst.applock.lock.errorAction
+import com.facefirst.applock.lock.shouldFallBack
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -26,5 +27,13 @@ class BiometricStatusTest {
         assertEquals(ErrorAction.SHOW_FALLBACK, errorAction(BiometricPrompt.ERROR_NEGATIVE_BUTTON))
         assertEquals(ErrorAction.SHOW_FALLBACK, errorAction(BiometricPrompt.ERROR_LOCKOUT))
         assertEquals(ErrorAction.SHOW_FALLBACK, errorAction(BiometricPrompt.ERROR_LOCKOUT_PERMANENT))
+    }
+    @Test fun fallsBackToPinAfterRepeatedFailures() {
+        assertFalse(shouldFallBack(0)); assertFalse(shouldFallBack(1)); assertTrue(shouldFallBack(2)); assertTrue(shouldFallBack(5))
+    }
+    @Test fun canceledAndTimeoutShowPin() {
+        assertEquals(ErrorAction.SHOW_FALLBACK, errorAction(BiometricPrompt.ERROR_CANCELED))
+        assertEquals(ErrorAction.SHOW_FALLBACK, errorAction(BiometricPrompt.ERROR_TIMEOUT))
+        assertEquals(ErrorAction.SHOW_FALLBACK, errorAction(BiometricPrompt.ERROR_HW_UNAVAILABLE))
     }
 }

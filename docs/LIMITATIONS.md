@@ -9,3 +9,4 @@
 - Android 13+ ve APK ile kurulumda erişilebilirlik izni "Kısıtlı ayara izin ver" adımı olmadan verilemez (Play Store kurulumunda yoktur).
 - Kilit ekranı, hedef uygulamanın ilk karesinden SONRA gelir (olay tabanlı algılama); içerik kısa süre görünebilir. FAZ 9'da gerçek cihazda ölçülecek.
 - Ekran görüntüsü/son uygulamalar önizlemesi FLAG_SECURE ile bu uygulamanın ekranlarında kapalıdır; kilitli HEDEF uygulamaların önizlemesini kontrol edemeyiz.
+- "Sadece yüz" zorlanamaz: Android parmak izini istemden çıkarmaya izin vermez. Parmak izini yalnızca telefon ayarlarından kayıttan silerek devre dışı bırakmak mümkündür (sistem genelini etkiler).

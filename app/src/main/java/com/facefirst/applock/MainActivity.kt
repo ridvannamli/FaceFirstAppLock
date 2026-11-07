@@ -29,6 +29,7 @@ import com.facefirst.applock.data.RecoveryClient
 import com.facefirst.applock.lock.BiometricStatus
 import com.facefirst.applock.lock.LockAccessibilityService
 import com.facefirst.applock.lock.LockRuntime
+import com.facefirst.applock.lock.shouldFallBack
 import com.facefirst.applock.ui.AppsScreen
 import com.facefirst.applock.ui.EmailFlow
 import com.facefirst.applock.ui.PinFlow
@@ -110,10 +111,14 @@ class MainActivity : FragmentActivity() {
 
     private fun promptBiometric() {
         prompting = true
-        BiometricPrompt(this, ContextCompat.getMainExecutor(this), object : BiometricPrompt.AuthenticationCallback() {
+        var fails = 0
+        lateinit var bp: BiometricPrompt
+        bp = BiometricPrompt(this, ContextCompat.getMainExecutor(this), object : BiometricPrompt.AuthenticationCallback() {
             override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) { prompting = false; authed = true }
+            override fun onAuthenticationFailed() { if (shouldFallBack(++fails)) bp.cancelAuthentication() }
             override fun onAuthenticationError(errorCode: Int, errString: CharSequence) { prompting = false } // PIN kapısı görünür kalır
-        }).authenticate(
+        })
+        bp.authenticate(
             BiometricPrompt.PromptInfo.Builder()
                 .setTitle(getString(R.string.locked_title))
                 .setAllowedAuthenticators(BIOMETRIC_WEAK)
