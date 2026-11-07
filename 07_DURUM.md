@@ -2,14 +2,14 @@
 ## Proje
 - FaceFirstAppLock: yüz > parmak izi > PIN, e-posta ile PIN sıfırlama yapan Android uygulama kilidi.
 ## Mevcut aşama
-- FAZ 5 kod tamam (PIN: PBKDF2+Keystore HMAC, artan bekleme, kurulum/değiştirme/kilit ekranı); sıradaki: FAZ 6.
+- FAZ 6 kod tamam (sunucu + istemci + ekranlar); canlı uçtan uca test hesap kurulumu bekliyor. Sıradaki: FAZ 7.
 ## Tamamlananlar
-- F0-F5: araştırma, iskelet, liste, servis, biyometrik, güvenli PIN.
+- F0-F6 kodu: ... güvenli PIN, e-posta ile PIN kurtarma (Worker+KV+Brevo, cihaz anahtarı imzalı).
 ## Son doğrulama
-- testDebugUnitTest assembleDebug lintDebug BAŞARILI; 27/27 birim testi. PIN ekranları cihazda denenmedi.
+- Android: testDebugUnitTest assembleDebug lintDebug BAŞARILI (31 birim testi). Sunucu: npm test 12/12 (sahte KV/e-posta). Canlı e-posta gönderimi DOĞRULANMADI.
 ## Bilinen sorunlar
-- Gerçek cihaz testi bekleniyor: liste, servis (Takvim), yüz, parmak izi, PIN kurulum/kilit/bekleme, izin akışı. APK teslim yolu belirlenmedi. Bekleme süresi duvar saatine bağlı (saat geri alınırsa atlanabilir): docs/LIMITATIONS.md.
+- BEKLEYEN: kurtarma servisi hesapları (Cloudflare+Brevo, docs/RECOVERY_SETUP.md) ve gerçek cihaz testleri (liste, servis, yüz, parmak izi, PIN, kurtarma). APK teslim yolu belirlenmedi.
 ## Sonraki onaylı aşama
-- FAZ 6 (otomatik ilerleme onaylı).
+- FAZ 7 (otomatik ilerleme onaylı).
 ## Son güncelleme
-2026-11-07: FAZ 5 PIN eklendi.
+2026-11-07: FAZ 6 PIN kurtarma kodu eklendi.

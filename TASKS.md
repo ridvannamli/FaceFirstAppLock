@@ -5,7 +5,7 @@
 - [x] F3 AccessibilityService + durum makinesi — geçişte kilit ekranı, döngü yok
 - [x] F4 (kod) BiometricPrompt — uyumluluk gösterimi, PIN'e düşüş [cihaz testi]
 - [x] F5 (kod) PIN — PBKDF2+Keystore, artan bekleme, birim testleri
-- [ ] F6 E-posta kurtarma — sunucu doğrulamalı OTP [hesap kurulumu gerekir]
+- [x] F6 (kod; canlı test bekliyor) E-posta kurtarma — sunucu doğrulamalı OTP [hesap kurulumu gerekir]
 - [ ] F7 Politikalar/güven süreleri
 - [ ] F8 Güvenlik/Play politikası/sürüm uyumu
 - [ ] F9 Testler/performans [cihaz testi]

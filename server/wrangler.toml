@@ -1,0 +1,12 @@
+name = "facefirst-recovery"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+
+# KV'yi oluşturduktan sonra id'yi buraya yaz (gizli değil):
+# [[kv_namespaces]]
+# binding = "KV"
+# id = "<KV_NAMESPACE_ID>"
+
+# Gizli değişkenler Git'e girmez; şu komutlarla eklenir:
+#   wrangler secret put MAIL_API_KEY
+#   wrangler secret put MAIL_FROM

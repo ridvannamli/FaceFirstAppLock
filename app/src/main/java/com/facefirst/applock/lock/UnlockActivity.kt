@@ -27,7 +27,10 @@ import androidx.lifecycle.lifecycleScope
 import com.facefirst.applock.R
 import com.facefirst.applock.data.PinRepository
 import com.facefirst.applock.data.PinResult
+import com.facefirst.applock.data.RecoveryClient
 import com.facefirst.applock.ui.PinPad
+import com.facefirst.applock.ui.ResetFlow
+import androidx.compose.material3.TextButton
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -44,16 +47,21 @@ class UnlockActivity : FragmentActivity() {
     private var resetKey by mutableStateOf(0)
     private var pinLen by mutableStateOf(4)
     private val repo by lazy { PinRepository.create(this) }
+    private val recovery by lazy { RecoveryClient(this) }
+    private var resetting by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         target = intent.getStringExtra(EXTRA_PACKAGE) ?: run { goHome(); return }
         lifecycleScope.launch { pinLen = repo.pinLength.first() }
         setContent {
-            BackHandler { goHome() }
+            BackHandler { if (resetting) resetting = false else goHome() }
             MaterialTheme {
                 Surface(Modifier.fillMaxSize()) {
-                    Column(
+                    if (resetting) ResetFlow(
+                        client = recovery, repo = repo, onCancel = { resetting = false },
+                        onFinished = { LockRuntime.machine?.onScreenOff(); unlock() }, // önceki oturumlar sıfırlanır
+                    ) else Column(
                         Modifier.fillMaxSize().padding(24.dp),
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -69,6 +77,7 @@ class UnlockActivity : FragmentActivity() {
                             Column(Modifier.padding(vertical = 16.dp)) {
                                 PinPad(pinLen, resetKey, enabled = wait <= 0L) { pin -> checkPin(pin) }
                             }
+                            TextButton(onClick = { resetting = true }) { Text(stringResource(R.string.forgot_pin)) }
                             if (BiometricStatus.check(this@UnlockActivity).usable) {
                                 Button(onClick = { showFallback = false; prompt() }) { Text(stringResource(R.string.retry_biometric)) }
                             }

@@ -19,13 +19,19 @@ import com.facefirst.applock.lock.BiometricStatus
 import com.facefirst.applock.lock.LockAccessibilityService
 import com.facefirst.applock.data.PinRepository
 import com.facefirst.applock.data.PinResult
+import com.facefirst.applock.data.RecoveryClient
 import com.facefirst.applock.ui.AppsScreen
+import com.facefirst.applock.ui.EmailFlow
+import com.facefirst.applock.ui.PinGate
 import com.facefirst.applock.ui.PinFlow
 
 class MainActivity : ComponentActivity() {
     private val repo by lazy { PinRepository.create(this) }
     private var protectionOn by mutableStateOf(false)
     private var changing by mutableStateOf(false)
+    private var emailStep by mutableStateOf(0) // 0 yok, 1 PIN kapısı, 2 e-posta akışı
+    private var skipRecovery by mutableStateOf(false)
+    private val recovery by lazy { RecoveryClient(this) }
     private var bio by mutableStateOf(BiometricStatus.UNAVAILABLE)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,8 +41,9 @@ class MainActivity : ComponentActivity() {
                 Surface {
                     val hasPin by repo.hasPin.collectAsState(initial = null)
                     val len by repo.pinLength.collectAsState(initial = 4)
+                    val masked by recovery.maskedEmail.collectAsState(initial = "…")
                     when {
-                        hasPin == null -> {}
+                        hasPin == null || masked == "…" -> {}
                         hasPin == false -> PinFlow(
                             requireOld = false, verifyOld = { PinResult.NotSet },
                             save = { pin, l, _ -> repo.setPin(pin, l) }, onCancel = null,
@@ -46,7 +53,15 @@ class MainActivity : ComponentActivity() {
                             save = { pin, l, old -> repo.changePin(old.orEmpty(), pin, l); changing = false },
                             onCancel = { changing = false },
                         )
+                        emailStep == 1 -> PinGate(repo, len, onSuccess = { emailStep = 2 }, onCancel = { emailStep = 0 })
+                        emailStep == 2 || (masked.isNullOrBlank() && !skipRecovery && recovery.enabled) -> EmailFlow(
+                            recovery, onDone = { emailStep = 0 },
+                            onSkip = if (emailStep == 2) null else ({ skipRecovery = true }),
+                        )
                         else -> AppsScreen(
+                            recoveryMasked = masked?.takeIf { it.isNotBlank() },
+                            recoveryEnabled = recovery.enabled,
+                            onChangeEmail = { emailStep = if (masked.isNullOrBlank()) 2 else 1 },
                             protectionOn = protectionOn,
                             biometricStatus = bio,
                             onOpenA11ySettings = { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) },

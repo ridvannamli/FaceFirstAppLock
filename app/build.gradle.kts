@@ -12,13 +12,15 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "0.1.0"
+        // Genel (gizli olmayan) Worker adresi: ./gradlew -PrecoveryUrl=https://... ; boşsa kurtarma devre dışı.
+        buildConfigField("String", "RECOVERY_URL", "\"${providers.gradleProperty("recoveryUrl").getOrElse("")}\"")
     }
     buildTypes {
         release { isMinifyEnabled = true; proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt")) }
     }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     kotlinOptions { jvmTarget = "17" }
-    buildFeatures { compose = true }
+    buildFeatures { compose = true; buildConfig = true }
 }
 dependencies {
     implementation(platform("androidx.compose:compose-bom:2025.10.00"))

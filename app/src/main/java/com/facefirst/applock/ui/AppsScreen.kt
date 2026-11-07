@@ -38,6 +38,9 @@ fun AppsScreen(
     biometricStatus: BiometricStatus,
     onOpenA11ySettings: () -> Unit,
     onChangePin: () -> Unit,
+    recoveryMasked: String?,
+    recoveryEnabled: Boolean,
+    onChangeEmail: () -> Unit,
     vm: AppsViewModel = viewModel(),
 ) {
     val s by vm.state.collectAsState()
@@ -64,7 +67,14 @@ fun AppsScreen(
             pluralStringResource(R.plurals.locked_count, s.totalLocked, s.totalLocked),
             style = MaterialTheme.typography.titleMedium,
         )
-        TextButton(onClick = onChangePin) { Text(stringResource(R.string.change_pin)) }
+        Text(
+            if (recoveryMasked != null) stringResource(R.string.rec_status_on, recoveryMasked) else stringResource(R.string.rec_status_off),
+            style = MaterialTheme.typography.bodySmall,
+        )
+        Row {
+            TextButton(onClick = onChangePin) { Text(stringResource(R.string.change_pin)) }
+            if (recoveryEnabled) TextButton(onClick = onChangeEmail) { Text(stringResource(R.string.change_email)) }
+        }
         OutlinedTextField(
             value = s.query, onValueChange = vm::setQuery, singleLine = true,
             label = { Text(stringResource(R.string.search_hint)) },
