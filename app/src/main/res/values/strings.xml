@@ -10,4 +10,12 @@
         <item quantity="one">%d uygulama kilitli</item>
         <item quantity="other">%d uygulama kilitli</item>
     </plurals>
+    <string name="a11y_description">Kilitli uygulamalardan birine geçildiğini algılar. Ekrandaki metin, mesaj veya şifre okunmaz; yalnızca açılan uygulamanın paket adı kullanılır.</string>
+    <string name="locked_title">Bu uygulama kilitli</string>
+    <string name="stub_note">GEÇİCİ TEST EKRANI: gerçek doğrulama sonraki aşamada eklenecek.</string>
+    <string name="stub_unlock">Aç (test)</string>
+    <string name="protection_off">Koruma kapalı: erişilebilirlik izni verilmedi.</string>
+    <string name="protection_on">Koruma açık.</string>
+    <string name="a11y_disclosure">Uygulama kilidi, hangi uygulamanın açıldığını anlamak için Erişilebilirlik servisini kullanır. Yalnızca açılan uygulamanın paket adı işlenir; ekran içeriği, mesaj ve şifreler okunmaz, hiçbir veri gönderilmez. İzni dilediğin zaman kapatabilirsin; kapatırsan koruma durur.</string>
+    <string name="open_a11y_settings">Erişilebilirlik ayarlarını aç</string>
 </resources>

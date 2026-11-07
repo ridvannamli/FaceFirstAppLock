@@ -32,9 +32,20 @@ import com.facefirst.applock.R
 import com.facefirst.applock.data.InstalledApps
 
 @Composable
-fun AppsScreen(vm: AppsViewModel = viewModel()) {
+fun AppsScreen(
+    protectionOn: Boolean,
+    onOpenA11ySettings: () -> Unit,
+    vm: AppsViewModel = viewModel(),
+) {
     val s by vm.state.collectAsState()
     Column(Modifier.fillMaxSize().padding(16.dp)) {
+        if (protectionOn) {
+            Text(stringResource(R.string.protection_on), color = MaterialTheme.colorScheme.primary)
+        } else {
+            Text(stringResource(R.string.protection_off), color = MaterialTheme.colorScheme.error)
+            Text(stringResource(R.string.a11y_disclosure), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(vertical = 4.dp))
+            TextButton(onClick = onOpenA11ySettings) { Text(stringResource(R.string.open_a11y_settings)) }
+        }
         Text(
             pluralStringResource(R.plurals.locked_count, s.totalLocked, s.totalLocked),
             style = MaterialTheme.typography.titleMedium,
