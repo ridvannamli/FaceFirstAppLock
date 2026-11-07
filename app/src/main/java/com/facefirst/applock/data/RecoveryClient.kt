@@ -56,7 +56,7 @@ class RecoveryClient(
 ) {
     private val store = context.applicationContext.recoveryStore
     val maskedEmail: Flow<String?> = store.data.map { it[K_MASKED] }
-    val enabled get() = baseUrl.isNotBlank()
+    val enabled get() = baseUrl.startsWith("https://") // düz http asla kullanılmaz
 
     private suspend fun deviceId(): String {
         store.data.first()[K_DEVICE]?.let { return it }

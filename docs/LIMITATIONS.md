@@ -5,4 +5,7 @@
 - Erişilebilirlik izni kaldırılırsa koruma durur; uygulama bunu bildirir.
 - Üretici pil optimizasyonu servisi öldürebilir.
 - E-posta kurtarma internet gerektirir.
-- PIN bekleme süresi duvar saatine dayanır; kullanıcı saati geri alarak beklemeyi atlayabilir. İyileştirme: SystemClock.elapsedRealtime + yeniden başlatma kontrolü (FAZ 8).
+- PIN bekleme süresi aynı açılışta tek yönlü süre sayacına (elapsedRealtime) bağlıdır; saat oynamaları işe yaramaz. Cihaz yeniden başlatılırsa sayaç sıfırlanır ve duvar saatine düşülür (kullanıcı yeniden başlatıp saati ileri alarak beklemeyi kısaltabilir; kabul edilen kalan risk).
+- Android 13+ ve APK ile kurulumda erişilebilirlik izni "Kısıtlı ayara izin ver" adımı olmadan verilemez (Play Store kurulumunda yoktur).
+- Kilit ekranı, hedef uygulamanın ilk karesinden SONRA gelir (olay tabanlı algılama); içerik kısa süre görünebilir. FAZ 9'da gerçek cihazda ölçülecek.
+- Ekran görüntüsü/son uygulamalar önizlemesi FLAG_SECURE ile bu uygulamanın ekranlarında kapalıdır; kilitli HEDEF uygulamaların önizlemesini kontrol edemeyiz.

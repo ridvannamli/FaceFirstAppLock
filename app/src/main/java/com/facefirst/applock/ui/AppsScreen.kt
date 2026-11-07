@@ -58,6 +58,7 @@ fun AppsScreen(
         } else {
             Text(stringResource(R.string.protection_off), color = MaterialTheme.colorScheme.error)
             Text(stringResource(R.string.a11y_disclosure), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(vertical = 4.dp))
+            Text(stringResource(R.string.restricted_hint), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(bottom = 4.dp))
             TextButton(onClick = onOpenA11ySettings) { Text(stringResource(R.string.open_a11y_settings)) }
         }
         Text(
@@ -83,6 +84,7 @@ fun AppsScreen(
             TextButton(onClick = onChangePin) { Text(stringResource(R.string.change_pin)) }
             if (recoveryEnabled) TextButton(onClick = onChangeEmail) { Text(stringResource(R.string.change_email)) }
         }
+        Text(stringResource(R.string.limits_info), style = MaterialTheme.typography.bodySmall)
         if (s.enabled) {
             TextButton(onClick = onRequestDisable) { Text(stringResource(R.string.protection_disable)) }
         } else {

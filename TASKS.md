@@ -7,7 +7,7 @@
 - [x] F5 (kod) PIN — PBKDF2+Keystore, artan bekleme, birim testleri
 - [x] F6 (kod; canlı test bekliyor) E-posta kurtarma — sunucu doğrulamalı OTP [hesap kurulumu gerekir]
 - [x] F7 (kod) Politikalar/güven süreleri
-- [ ] F8 Güvenlik/Play politikası/sürüm uyumu
+- [x] F8 Güvenlik/Play politikası/sürüm uyumu
 - [ ] F9 Testler/performans [cihaz testi]
 - [ ] F10 Debug APK, release talimatı, kılavuz
 Gerçek cihaz testleri: hepsi "bekleniyor".

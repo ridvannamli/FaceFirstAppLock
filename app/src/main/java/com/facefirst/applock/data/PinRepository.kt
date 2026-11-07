@@ -15,6 +15,18 @@ import java.util.Base64
 
 private val Context.pinStore by preferencesDataStore("pin_store")
 
+/** Zaman görüntüsü: duvar saati (kullanıcı değiştirebilir), tek yönlü süre sayacı ve açılış sayısı. */
+data class TimeSnap(val wall: Long, val elapsed: Long, val boot: Int)
+interface TimeSource { fun now(): TimeSnap }
+
+class SystemTimeSource(private val context: Context) : TimeSource {
+    override fun now() = TimeSnap(
+        System.currentTimeMillis(),
+        android.os.SystemClock.elapsedRealtime(),
+        android.provider.Settings.Global.getInt(context.contentResolver, android.provider.Settings.Global.BOOT_COUNT, 0),
+    )
+}
+
 sealed interface PinResult {
     data object Success : PinResult
     data class Wrong(val failed: Int, val retryAfterMs: Long) : PinResult
@@ -25,6 +37,7 @@ sealed interface PinResult {
 class PinRepository(
     private val store: DataStore<Preferences>,
     private val pepper: Pepper,
+    private val time: TimeSource,
     private val iterations: Int = PinCrypto.ITERATIONS,
 ) {
     private val kSalt = stringPreferencesKey("salt")
@@ -32,6 +45,9 @@ class PinRepository(
     private val kLen = intPreferencesKey("len")
     private val kFailed = intPreferencesKey("failed")
     private val kUntil = longPreferencesKey("locked_until")
+    private val kDur = longPreferencesKey("lock_dur")
+    private val kElapsed = longPreferencesKey("lock_elapsed")
+    private val kBoot = intPreferencesKey("lock_boot")
 
     val hasPin: Flow<Boolean> = store.data.map { it[kHash] != null }
     val pinLength: Flow<Int> = store.data.map { it[kLen] ?: 4 }
@@ -45,35 +61,47 @@ class PinRepository(
         val enc = Base64.getEncoder()
         store.edit {
             it[kSalt] = enc.encodeToString(salt); it[kHash] = enc.encodeToString(hash)
-            it[kLen] = length; it[kFailed] = 0; it[kUntil] = 0
+            it[kLen] = length; it[kFailed] = 0; it[kUntil] = 0; it[kDur] = 0
         }
     }
 
-    suspend fun verify(pin: String, now: Long = System.currentTimeMillis()): PinResult {
+    /** Kalan bekleme: aynı açılışta tek yönlü sayaçla (saat oynamaları işe yaramaz); yeniden başlatmada duvar saatiyle. */
+    private fun remaining(p: Preferences, now: TimeSnap): Long {
+        val dur = p[kDur] ?: 0
+        if (dur <= 0) return 0
+        val rem = if (p[kBoot] == now.boot) dur - (now.elapsed - (p[kElapsed] ?: 0)) else (p[kUntil] ?: 0) - now.wall
+        return maxOf(0, rem)
+    }
+
+    suspend fun verify(pin: String, now: TimeSnap = time.now()): PinResult {
         val p = store.data.first()
         val hashStr = p[kHash] ?: return PinResult.NotSet
-        val until = p[kUntil] ?: 0
-        if (now < until) return PinResult.Locked(until - now)
+        val rem = remaining(p, now)
+        if (rem > 0) return PinResult.Locked(rem)
         val dec = Base64.getDecoder()
         val actual = PinCrypto.hash(pin, dec.decode(p[kSalt]!!), pepper, iterations)
         if (PinCrypto.equalConstantTime(actual, dec.decode(hashStr))) {
-            store.edit { it[kFailed] = 0; it[kUntil] = 0 }
+            store.edit { it[kFailed] = 0; it[kUntil] = 0; it[kDur] = 0 }
             return PinResult.Success
         }
         val failed = (p[kFailed] ?: 0) + 1
         val delay = Throttle.delayMs(failed)
-        store.edit { it[kFailed] = failed; it[kUntil] = if (delay > 0) now + delay else 0 }
+        store.edit {
+            it[kFailed] = failed
+            it[kDur] = delay; it[kUntil] = if (delay > 0) now.wall + delay else 0
+            it[kElapsed] = now.elapsed; it[kBoot] = now.boot
+        }
         return PinResult.Wrong(failed, delay)
     }
 
     /** Eski PIN doğrulanırsa yenisini kaydeder. */
-    suspend fun changePin(old: String, new: String, length: Int, now: Long = System.currentTimeMillis()): PinResult {
+    suspend fun changePin(old: String, new: String, length: Int, now: TimeSnap = time.now()): PinResult {
         val r = verify(old, now)
         if (r is PinResult.Success) setPin(new, length)
         return r
     }
 
     companion object {
-        fun create(context: Context) = PinRepository(context.applicationContext.pinStore, KeystorePepper())
+        fun create(context: Context) = PinRepository(context.applicationContext.pinStore, KeystorePepper(), SystemTimeSource(context.applicationContext))
     }
 }

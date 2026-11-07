@@ -70,4 +70,6 @@
     <string name="protection_paused">Koruma kapalı (kilitli uygulamalar açılıyor).</string>
     <string name="protection_resume">Korumayı aç</string>
     <string name="protection_disable">Korumayı kapat (PIN ister)</string>
+    <string name="limits_info">Kilitlenemeyenler: sistem arayüzü, ana ekran (launcher), izin/paket yükleyici pencereleri, acil arama ve bu uygulamanın doğrulama ekranı. Android normal uygulamalara mutlak koruma yetkisi vermez.</string>
+    <string name="restricted_hint">Android 13+ ve APK ile kurulduysa: Erişilebilirlik anahtarı gri ise Ayarlar > Uygulamalar > FaceFirst Kilit > ⋮ > "Kısıtlı ayara izin ver" seçeneğini aç, sonra tekrar dene.</string>
 </resources>

@@ -6,6 +6,8 @@ import com.facefirst.applock.data.PinCrypto
 import com.facefirst.applock.data.PinRepository
 import com.facefirst.applock.data.PinResult
 import com.facefirst.applock.data.Throttle
+import com.facefirst.applock.data.TimeSnap
+import com.facefirst.applock.data.TimeSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -20,14 +22,20 @@ import org.junit.rules.TemporaryFolder
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
+class FakeTime(var wall: Long = 1_000_000, var elapsed: Long = 5_000, var boot: Int = 1) : TimeSource {
+    override fun now() = TimeSnap(wall, elapsed, boot)
+    fun advance(ms: Long) { wall += ms; elapsed += ms }
+}
+
 class PinTest {
     @get:Rule val tmp = TemporaryFolder()
     private fun pepper(k: String = "k") = object : Pepper {
         override fun mac(data: ByteArray) = Mac.getInstance("HmacSHA256").apply { init(SecretKeySpec(k.toByteArray(), "HmacSHA256")) }.doFinal(data)
     }
+    private val clock = FakeTime()
     private fun repo(p: Pepper = pepper(), name: String = "a") = PinRepository(
         PreferenceDataStoreFactory.create(scope = CoroutineScope(Dispatchers.IO + Job())) { tmp.newFile("$name.preferences_pb").also { it.delete() } },
-        p, iterations = 1_000,
+        p, clock, iterations = 1_000,
     )
 
     @Test fun throttleIncreases() {
@@ -48,15 +56,34 @@ class PinTest {
         assertEquals(PinResult.Success, r.verify("1234"))
         assertTrue(r.verify("0000") is PinResult.Wrong)
     }
+    private suspend fun fiveWrong(r: PinRepository) {
+        repeat(4) { assertEquals(0, (r.verify("000000") as PinResult.Wrong).retryAfterMs) }
+        assertEquals(30_000, (r.verify("000000") as PinResult.Wrong).retryAfterMs)
+    }
     @Test fun lockoutAfterFiveWrongThenWaitsThenRecovers() = runBlocking {
-        val r = repo(); r.setPin("123456", 6)
-        var t = 1_000_000L
-        repeat(4) { assertEquals(0, (r.verify("000000", t) as PinResult.Wrong).retryAfterMs) }
-        assertEquals(30_000, (r.verify("000000", t) as PinResult.Wrong).retryAfterMs)
-        assertTrue(r.verify("123456", t + 1_000) is PinResult.Locked) // doğru PIN bile bekleme süresince reddedilir
-        t += 31_000
-        assertEquals(PinResult.Success, r.verify("123456", t))
-        assertEquals(0, (r.verify("000000", t) as PinResult.Wrong).retryAfterMs - 0 * 1) // sayaç sıfırlandı
+        val r = repo(); r.setPin("123456", 6); fiveWrong(r)
+        clock.advance(1_000)
+        assertTrue(r.verify("123456") is PinResult.Locked) // doğru PIN bile bekleme süresince reddedilir
+        clock.advance(30_000)
+        assertEquals(PinResult.Success, r.verify("123456"))
+        assertEquals(0, (r.verify("000000") as PinResult.Wrong).retryAfterMs) // sayaç sıfırlandı
+    }
+    @Test fun clockSetForwardDoesNotBypassWait() = runBlocking {
+        val r = repo(); r.setPin("123456", 6); fiveWrong(r)
+        clock.wall += 3_600_000; clock.elapsed += 1_000 // kullanıcı saati 1 saat ileri aldı
+        assertTrue(r.verify("123456") is PinResult.Locked)
+    }
+    @Test fun clockSetBackwardDoesNotExtendWait() = runBlocking {
+        val r = repo(); r.setPin("123456", 6); fiveWrong(r)
+        clock.wall -= 3_600_000; clock.elapsed += 31_000
+        assertEquals(PinResult.Success, r.verify("123456"))
+    }
+    @Test fun afterRebootFallsBackToWallClock() = runBlocking {
+        val r = repo(); r.setPin("123456", 6); fiveWrong(r)
+        clock.boot = 2; clock.elapsed = 100; clock.wall += 10_000
+        assertTrue(r.verify("123456") is PinResult.Locked)
+        clock.wall += 40_000
+        assertEquals(PinResult.Success, r.verify("123456"))
     }
     @Test fun changePinNeedsOld() = runBlocking {
         val r = repo(); r.setPin("1111", 4)

@@ -2,6 +2,8 @@ package com.facefirst.applock.lock
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.WindowManager
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
@@ -52,12 +54,13 @@ class UnlockActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
         target = intent.getStringExtra(EXTRA_PACKAGE) ?: run { goHome(); return }
         lifecycleScope.launch { pinLen = repo.pinLength.first() }
         setContent {
             BackHandler { if (resetting) resetting = false else goHome() }
             MaterialTheme {
-                Surface(Modifier.fillMaxSize()) {
+                Surface(Modifier.fillMaxSize().safeDrawingPadding()) {
                     if (resetting) ResetFlow(
                         client = recovery, repo = repo, onCancel = { resetting = false },
                         onFinished = { LockRuntime.machine?.onScreenOff(); unlock() }, // önceki oturumlar sıfırlanır
