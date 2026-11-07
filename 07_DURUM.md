@@ -2,14 +2,14 @@
 ## Proje
 - FaceFirstAppLock: yüz > parmak izi > PIN, e-posta ile PIN sıfırlama yapan Android uygulama kilidi.
 ## Mevcut aşama
-- FAZ 1 tamamlandı; sıradaki FAZ 2 (uygulama listesi).
+- FAZ 2 kod tamam; gerçek cihaz kontrolü bekleniyor. Sıradaki: FAZ 3.
 ## Tamamlananlar
-- FAZ 0 araştırma; FAZ 1 iskelet (Compose, AGP 8.13.2, Kotlin 2.2.21, compose-bom 2025.10.00).
+- FAZ 0 araştırma, FAZ 1 iskelet, FAZ 2 uygulama listesi/arama/toplu seçim/DataStore.
 ## Son doğrulama
-- `./gradlew assembleDebug` BAŞARILI (app-debug.apk üretildi); cihazda çalıştırılmadı.
+- `./gradlew testDebugUnitTest assembleDebug` BAŞARILI; 4/4 birim testi geçti. Arayüz cihazda görülmedi.
 ## Bilinen sorunlar
-- Gerçek cihaz testi bekleniyor (henüz test edilecek kod yok).
+- Gerçek cihaz testi bekleniyor: liste, arama, kilit anahtarı kalıcılığı.
 ## Sonraki onaylı aşama
-- FAZ 2 (otomatik ilerleme onaylı).
+- FAZ 3 (otomatik ilerleme onaylı).
 ## Son güncelleme
-2026-11-07: FAZ 1 iskelet derlendi.
+2026-11-07: FAZ 2 uygulama listesi eklendi.

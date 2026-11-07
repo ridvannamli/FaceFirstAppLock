@@ -1,7 +1,7 @@
 # Görevler (kabul kriteriyle)
 - [x] F0 Araştırma/mimari — docs/DECISIONS.md dolu
 - [x] F1 İskelet — `gradle assembleDebug` başarılı
-- [ ] F2 Uygulama listesi/seçim/DataStore — liste, arama, toplu seçim, kalıcı
+- [x] F2 Uygulama listesi/seçim/DataStore — liste, arama, toplu seçim, kalıcı
 - [ ] F3 AccessibilityService + durum makinesi — geçişte kilit ekranı, döngü yok
 - [ ] F4 BiometricPrompt — uyumluluk gösterimi, PIN'e düşüş [cihaz testi]
 - [ ] F5 PIN — PBKDF2+Keystore, artan bekleme, birim testleri

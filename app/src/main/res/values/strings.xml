@@ -2,4 +2,12 @@
 <resources>
     <string name="app_name">FaceFirst Kilit</string>
     <string name="home_title">Koruma durumu</string>
+    <string name="search_hint">Uygulama ara</string>
+    <string name="lock_all_visible">Görünenleri kilitle</string>
+    <string name="unlock_all_visible">Görünenlerin kilidini kaldır</string>
+    <string name="no_apps">Uygulama bulunamadı</string>
+    <plurals name="locked_count">
+        <item quantity="one">%d uygulama kilitli</item>
+        <item quantity="other">%d uygulama kilitli</item>
+    </plurals>
 </resources>
