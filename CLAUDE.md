@@ -4,3 +4,4 @@ Proje yetkisi (kullanıcı, 2026-11-07, güncel): FAZ 0-10 arası geçişte onay
 Talimat kaynağı: `docs/BRIEF.md`. Hassas bilgi (SMTP/API anahtarı, PIN) Git'e girmez. Dil: Türkçe.
 Derleme: Android SDK /opt/android-sdk (oturum sıfırlanırsa `docs/ENV_SETUP.md`), `ANDROID_HOME=/opt/android-sdk ./gradlew testDebugUnitTest assembleDebug`.
 Bildirim kuralı (kullanıcı, 2026-11-07): Faz geçişlerinde PushNotification GÖNDERME. Yalnızca: telefon testi için kullanıcı gerekiyorsa, engel/bilgi gerekiyorsa, iş uçtan uca bittiyse.
+Devam notu: Oturum başında `07_DURUM.md` içindeki "KALDIĞIMIZ YERİ" bölümünü oku ve oradan sürdür; kullanıcı telefon adımlarını yapınca sonucu bekle, tahminle kod değiştirme.
