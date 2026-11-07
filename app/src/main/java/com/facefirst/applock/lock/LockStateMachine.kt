@@ -10,33 +10,49 @@ class LockStateMachine(
     private val debounceMs: Long = 1_000,
     private val ignored: () -> Set<String>,
     private val lockedProvider: () -> Set<String>,
+    private val policyOf: (String) -> Policy = { Policy.EVERY_ENTRY },
 ) {
     private var foreground: String? = null
-    private val unlocked = HashSet<String>()
+    private val unlockedNow = HashSet<String>()            // şu an ön plandaki doğrulanmış uygulama
+    private val validUntil = HashMap<String, Long>()       // çıkış sonrası geçerlilik (Long.MAX_VALUE = ekran kapanana dek)
     private var lastShownPkg: String? = null
     private var lastShownAt = 0L
 
-    /** Ön plana yeni bir pencere geldi. */
     @Synchronized
     fun onWindowChanged(pkg: String, now: Long): LockAction {
         if (pkg in ignored()) return LockAction.None
         if (pkg != foreground) {
-            // Uygulamadan çıkıldı: önceki uygulamanın doğrulaması biter (her girişte doğrulama).
-            foreground?.let { unlocked.remove(it) }
+            foreground?.let { prev ->
+                if (unlockedNow.remove(prev)) {
+                    val p = policyOf(prev)
+                    when {
+                        p.ms < 0 -> validUntil[prev] = Long.MAX_VALUE
+                        p.ms > 0 -> validUntil[prev] = now + p.ms
+                    }
+                }
+            }
             foreground = pkg
             lastShownPkg = null
         }
-        if (pkg !in lockedProvider() || pkg in unlocked) return LockAction.None
+        if (pkg !in lockedProvider()) return LockAction.None
+        if (pkg in unlockedNow) return LockAction.None
+        validUntil[pkg]?.let { until ->
+            if (now < until) { validUntil.remove(pkg); unlockedNow.add(pkg); return LockAction.None }
+            validUntil.remove(pkg)
+        }
         if (lastShownPkg == pkg && now - lastShownAt < debounceMs) return LockAction.None
         lastShownPkg = pkg
         lastShownAt = now
         return LockAction.ShowLock(pkg)
     }
 
-    @Synchronized fun onUnlocked(pkg: String) { unlocked.add(pkg); lastShownPkg = null }
+    @Synchronized fun onUnlocked(pkg: String) { unlockedNow.add(pkg); validUntil.remove(pkg); lastShownPkg = null }
 
-    /** Ekran kapandı: tüm doğrulamalar sıfırlanır. */
-    @Synchronized fun onScreenOff() { unlocked.clear(); foreground = null; lastShownPkg = null }
+    /** Ekran kapandı veya PIN sıfırlandı: tüm doğrulamalar iptal. */
+    @Synchronized fun onScreenOff() { unlockedNow.clear(); validUntil.clear(); foreground = null; lastShownPkg = null }
+
+    /** Koruma kapatıldı/yeniden açıldı vb.: oturumları sıfırla (ön planı koru). */
+    @Synchronized fun resetSessions() { unlockedNow.clear(); validUntil.clear(); lastShownPkg = null }
 }
 
 /** Servis ve kilit ekranı arasındaki süreç içi bağ. */

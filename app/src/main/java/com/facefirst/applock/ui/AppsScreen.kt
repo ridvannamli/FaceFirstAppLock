@@ -31,6 +31,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.facefirst.applock.R
 import com.facefirst.applock.data.InstalledApps
 import com.facefirst.applock.lock.BiometricStatus
+import com.facefirst.applock.lock.Policy
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.foundation.layout.Box
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 
 @Composable
 fun AppsScreen(
@@ -41,6 +48,7 @@ fun AppsScreen(
     recoveryMasked: String?,
     recoveryEnabled: Boolean,
     onChangeEmail: () -> Unit,
+    onRequestDisable: () -> Unit,
     vm: AppsViewModel = viewModel(),
 ) {
     val s by vm.state.collectAsState()
@@ -75,6 +83,16 @@ fun AppsScreen(
             TextButton(onClick = onChangePin) { Text(stringResource(R.string.change_pin)) }
             if (recoveryEnabled) TextButton(onClick = onChangeEmail) { Text(stringResource(R.string.change_email)) }
         }
+        if (s.enabled) {
+            TextButton(onClick = onRequestDisable) { Text(stringResource(R.string.protection_disable)) }
+        } else {
+            Text(stringResource(R.string.protection_paused), color = MaterialTheme.colorScheme.error)
+            TextButton(onClick = vm::enable) { Text(stringResource(R.string.protection_resume)) }
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(R.string.policy_global_label), style = MaterialTheme.typography.bodySmall)
+            PolicyMenu(current = s.global, allowDefault = false, onPick = { vm.setGlobal(it!!) })
+        }
         OutlinedTextField(
             value = s.query, onValueChange = vm::setQuery, singleLine = true,
             label = { Text(stringResource(R.string.search_hint)) },
@@ -101,6 +119,9 @@ fun AppsScreen(
                     ) {
                         icon?.let { Image(it, null, Modifier.size(40.dp)) } ?: Column(Modifier.size(40.dp)) {}
                         Text(app.label, Modifier.weight(1f).padding(horizontal = 12.dp))
+                        if (app.packageName in s.locked) {
+                            PolicyMenu(current = s.overrides[app.packageName], allowDefault = true, onPick = { vm.setOverride(app.packageName, it) })
+                        }
                         Switch(
                             checked = app.packageName in s.locked,
                             onCheckedChange = { vm.toggle(app.packageName, it) },
@@ -108,6 +129,32 @@ fun AppsScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun policyLabel(p: Policy?): String = stringResource(
+    when (p) {
+        null -> R.string.policy_default
+        Policy.EVERY_ENTRY -> R.string.policy_every
+        Policy.SCREEN_OFF -> R.string.policy_screen_off
+        Policy.T30 -> R.string.policy_30s
+        Policy.T60 -> R.string.policy_1m
+        Policy.T300 -> R.string.policy_5m
+        Policy.T600 -> R.string.policy_10m
+    }
+)
+
+/** current == null: uygulamaya özel ayar yok (genel geçerli). */
+@Composable
+private fun PolicyMenu(current: Policy?, allowDefault: Boolean, onPick: (Policy?) -> Unit) {
+    var open by remember { mutableStateOf(false) }
+    Box {
+        TextButton(onClick = { open = true }) { Text(policyLabel(current), style = MaterialTheme.typography.bodySmall) }
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            if (allowDefault) DropdownMenuItem(text = { Text(policyLabel(null)) }, onClick = { open = false; onPick(null) })
+            Policy.entries.forEach { p -> DropdownMenuItem(text = { Text(policyLabel(p)) }, onClick = { open = false; onPick(p) }) }
         }
     }
 }

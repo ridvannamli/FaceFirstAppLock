@@ -59,4 +59,15 @@
     <string name="rec_status_on">Kurtarma e-postası: %1$s</string>
     <string name="rec_status_off">Kurtarma e-postası ayarlı değil.</string>
     <string name="change_email">Kurtarma e-postasını değiştir</string>
+    <string name="policy_every">Her girişte</string>
+    <string name="policy_screen_off">Ekran kapanana kadar</string>
+    <string name="policy_30s">30 saniye</string>
+    <string name="policy_1m">1 dakika</string>
+    <string name="policy_5m">5 dakika</string>
+    <string name="policy_10m">10 dakika</string>
+    <string name="policy_default">Genel ayarı kullan</string>
+    <string name="policy_global_label">Genel doğrulama süresi:</string>
+    <string name="protection_paused">Koruma kapalı (kilitli uygulamalar açılıyor).</string>
+    <string name="protection_resume">Korumayı aç</string>
+    <string name="protection_disable">Korumayı kapat (PIN ister)</string>
 </resources>

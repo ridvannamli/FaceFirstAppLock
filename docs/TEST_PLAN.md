@@ -7,4 +7,5 @@ Otomatik (birim/enstrümantasyon): PIN türetme/bekleme, durum makinesi, politik
 | Yüz, parmak izi, biyometrik iptal/hata, karanlıkta yüz (F4) | Gerçek cihaz testi bekleniyor |
 | PIN kurulum, değiştirme, yanlış PIN, 5 hata sonrası bekleme (F5) | Gerçek cihaz testi bekleniyor |
 | E-posta doğrulama, PIN\x27imi unuttum, yanlış/süresi dolmuş kod, yeniden gönderme, yeni PIN (F6, canlı servis gerekir) | Bekliyor: hesap kurulumu + cihaz |
+| Politikalar: 30 sn/1-5-10 dk, ekran kapanana dek, uygulama bazlı, koruma kapatma, kendi ayarları kilidi (F7) | Gerçek cihaz testi bekleniyor |
 | Diğer tüm testler | Gerçek cihaz testi bekleniyor |

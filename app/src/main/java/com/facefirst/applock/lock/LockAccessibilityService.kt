@@ -9,6 +9,7 @@ import android.view.accessibility.AccessibilityEvent
 import android.view.inputmethod.InputMethodManager
 import com.facefirst.applock.data.LockedAppsRepository
 import com.facefirst.applock.data.PinRepository
+import com.facefirst.applock.data.PolicyRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -24,6 +25,8 @@ class LockAccessibilityService : AccessibilityService() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     @Volatile private var locked: Set<String> = emptySet()
     @Volatile private var ime: Set<String> = emptySet()
+    @Volatile private var globalPolicy: Policy = Policy.EVERY_ENTRY
+    @Volatile private var overrides: Map<String, Policy> = emptyMap()
 
     private val screenOff = object : BroadcastReceiver() {
         override fun onReceive(c: Context?, i: Intent?) { LockRuntime.machine?.onScreenOff() }
@@ -34,13 +37,18 @@ class LockAccessibilityService : AccessibilityService() {
         LockRuntime.machine = LockStateMachine(
             ignored = { ime + setOf(packageName, "com.android.systemui") },
             lockedProvider = { locked },
+            policyOf = { overrides[it] ?: globalPolicy },
         )
         LockRuntime.serviceConnected = true
         scope.launch {
+            val pol = PolicyRepository(applicationContext)
+            launch { pol.global.collect { globalPolicy = it } }
+            launch { pol.overrides.collect { overrides = it } }
             combine(
                 LockedAppsRepository(applicationContext).lockedPackages,
                 PinRepository.create(applicationContext).hasPin,
-            ) { apps, hasPin -> if (hasPin) apps else emptySet() }.collect { locked = it }
+                pol.enabled,
+            ) { apps, hasPin, on -> if (hasPin && on) apps else emptySet() }.collect { locked = it }
         }
         registerReceiver(screenOff, IntentFilter(Intent.ACTION_SCREEN_OFF))
     }
