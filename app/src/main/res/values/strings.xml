@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">FaceFirst Kilit</string>
-    <string name="home_title">Koruma durumu</string>
     <string name="search_hint">Uygulama ara</string>
     <string name="lock_all_visible">Görünenleri kilitle</string>
     <string name="unlock_all_visible">Görünenlerin kilidini kaldır</string>
@@ -34,7 +33,6 @@
     <string name="pin_locked">Çok fazla yanlış deneme. %1$d sn sonra tekrar dene.</string>
     <string name="cancel">Vazgeç</string>
     <string name="change_pin">PIN değiştir</string>
-    <string name="setup_title">Önce bir PIN belirle</string>
     <string name="rec_disabled">Kurtarma servisi bu sürümde ayarlı değil.</string>
     <string name="rec_network">İnternet bağlantısı yok veya sunucuya ulaşılamadı.</string>
     <string name="rec_rate">Çok fazla kod istendi. Bir süre sonra tekrar dene.</string>

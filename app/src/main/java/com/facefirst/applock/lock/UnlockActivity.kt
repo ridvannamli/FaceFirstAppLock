@@ -91,6 +91,13 @@ class UnlockActivity : FragmentActivity() {
         }
     }
 
+    /** singleTask: kilit ekranı açıkken başka bir kilitli uygulamaya geçilirse hedef güncellenir (eski hedefe dönülmez). */
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        intent.getStringExtra(EXTRA_PACKAGE)?.let { target = it }
+    }
+
     override fun onResume() {
         super.onResume()
         if (!showFallback) prompt()
