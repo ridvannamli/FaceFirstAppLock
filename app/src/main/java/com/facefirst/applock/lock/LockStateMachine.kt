@@ -56,7 +56,17 @@ class LockStateMachine(
 }
 
 /** Servis ve kilit ekranı arasındaki süreç içi bağ. */
+data class Diag(
+    val connected: Boolean = false,
+    val events: Int = 0,
+    val lastPkg: String = "-",
+    val decision: String = "-",
+    val lockedCount: Int = 0,
+)
+
 object LockRuntime {
+    /** Yalnızca test (debug) sürümünde ekranda gösterilir; ekran içeriği değil, paket adı ve karar. */
+    val diag = kotlinx.coroutines.flow.MutableStateFlow(Diag())
     @Volatile var machine: LockStateMachine? = null
     @Volatile var serviceConnected: Boolean = false
 }

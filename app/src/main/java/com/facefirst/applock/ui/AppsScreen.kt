@@ -87,6 +87,14 @@ fun AppsScreen(
             TextButton(onClick = onChangePin) { Text(stringResource(R.string.change_pin)) }
             if (recoveryEnabled) TextButton(onClick = onChangeEmail) { Text(stringResource(R.string.change_email)) }
         }
+        if (com.facefirst.applock.BuildConfig.DEBUG) {
+            val d by com.facefirst.applock.lock.LockRuntime.diag.collectAsState()
+            Text(
+                "TEŞHİS: servis ${if (d.connected) "bağlı" else "BAĞLI DEĞİL"} · olay ${d.events} · kilitli ${d.lockedCount}\nson: ${d.lastPkg}\nkarar: ${d.decision}",
+                style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.tertiary,
+                modifier = Modifier.padding(vertical = 4.dp),
+            )
+        }
         Text(stringResource(R.string.limits_info), style = MaterialTheme.typography.bodySmall)
         if (s.enabled) {
             TextButton(onClick = onRequestDisable) { Text(stringResource(R.string.protection_disable)) }

@@ -23,3 +23,4 @@ Adım adım yönergeler: docs/DEVICE_TEST_GUIDE.md. Hepsi: Gerçek cihaz testi b
 - Hata: uygulama listesi yalnız ilk uygulamayı (Adidas) gösterdi → kök neden: sabit yükseklikli ekranda 14 üst bilgi öğesi liste alanını bırakmadı. Düzeltme 0.1.1 (tek LazyColumn); cihazda DOĞRULANMADI.
 - İstek: yüzde "onayla" adımı kalksın → setConfirmationRequired(false) (0.1.1). Yüz/parmak izi seçimini uygulama belirleyemez (Android sınırı).
 - Ekran görüntüsü alınamadı → FLAG_SECURE; 0.1.1 debug sürümünde kapalı.
+- 0.1.1 sonucu (kullanıcı): yüz onaysız açıldı (başarılı). Adidas kilidi çalışmadı; neden bilinmiyor → 0.1.2'de ana ekrana TEŞHİS satırı eklendi (yalnız debug).
