@@ -9,5 +9,5 @@
 - [x] F7 (kod) Politikalar/güven süreleri
 - [x] F8 Güvenlik/Play politikası/sürüm uyumu
 - [x] F9 (otomatik kısım; cihaz testi bekliyor) Testler/performans [cihaz testi]
-- [ ] F10 Debug APK, release talimatı, kılavuz
+- [x] F10 Debug APK, release talimatı, kılavuz
 Gerçek cihaz testleri: hepsi "bekleniyor".
