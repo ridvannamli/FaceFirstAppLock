@@ -2,7 +2,13 @@ package com.facefirst.applock.lock
 
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.ComponentActivity
+import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
+import androidx.biometric.BiometricPrompt
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
@@ -20,12 +26,13 @@ import androidx.compose.ui.unit.dp
 import com.facefirst.applock.R
 
 /**
- * FAZ 3 GEÇİCİ KİLİT EKRANI: doğrulama yok, yalnızca kilit akışını sınamak içindir.
- * FAZ 4 (biyometrik) ve FAZ 5 (PIN) bunu gerçek doğrulamayla değiştirecek.
- * Bu sürüm gerçek koruma SAĞLAMAZ.
+ * Önce biyometrik (BiometricPrompt; yüz/parmak izi, sistemin sunduğu). Yedek ekran (FAZ 5'e kadar)
+ * geçici bir test düğmesidir ve PIN gelince kaldırılacak; o zamana dek gerçek koruma SAĞLAMAZ.
  */
-class UnlockActivity : ComponentActivity() {
+class UnlockActivity : FragmentActivity() {
     private lateinit var target: String
+    private var showFallback by mutableStateOf(false)
+    private var prompting = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,12 +47,42 @@ class UnlockActivity : ComponentActivity() {
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Text(stringResource(R.string.locked_title), style = MaterialTheme.typography.titleLarge)
-                        Text(stringResource(R.string.stub_note), Modifier.padding(vertical = 16.dp))
-                        Button(onClick = { unlock() }) { Text(stringResource(R.string.stub_unlock)) }
+                        if (showFallback) {
+                            Text(stringResource(R.string.stub_note), Modifier.padding(vertical = 16.dp))
+                            Button(onClick = { unlock() }) { Text(stringResource(R.string.stub_unlock)) }
+                            Button(onClick = { showFallback = false; prompt() }) { Text(stringResource(R.string.retry_biometric)) }
+                        }
                     }
                 }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (!showFallback) prompt()
+    }
+
+    private fun prompt() {
+        if (prompting) return
+        if (!BiometricStatus.check(this).usable) { showFallback = true; return }
+        prompting = true
+        val bp = BiometricPrompt(this, ContextCompat.getMainExecutor(this), object : BiometricPrompt.AuthenticationCallback() {
+            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                prompting = false; unlock()
+            }
+            override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                prompting = false
+                if (errorAction(errorCode) == ErrorAction.GO_HOME) goHome() else showFallback = true
+            }
+        })
+        bp.authenticate(
+            BiometricPrompt.PromptInfo.Builder()
+                .setTitle(getString(R.string.locked_title))
+                .setAllowedAuthenticators(BIOMETRIC_WEAK)
+                .setNegativeButtonText(getString(R.string.use_pin))
+                .build()
+        )
     }
 
     private fun unlock() {

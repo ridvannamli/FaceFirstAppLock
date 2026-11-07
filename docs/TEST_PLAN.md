@@ -4,4 +4,5 @@ Otomatik (birim/enstrümantasyon): PIN türetme/bekleme, durum makinesi, politik
 |---|---|
 | Uygulama listesi, arama, anahtar kalıcılığı (F2) | Gerçek cihaz testi bekleniyor |
 | Servis tetikleme: Takvim kilidi, ekran kapat/aç, izin iptali (F3) | Gerçek cihaz testi bekleniyor |
+| Yüz, parmak izi, biyometrik iptal/hata, karanlıkta yüz (F4) | Gerçek cihaz testi bekleniyor |
 | Diğer tüm testler | Gerçek cihaz testi bekleniyor |

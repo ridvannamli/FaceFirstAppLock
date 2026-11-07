@@ -14,11 +14,13 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.facefirst.applock.lock.BiometricStatus
 import com.facefirst.applock.lock.LockAccessibilityService
 import com.facefirst.applock.ui.AppsScreen
 
 class MainActivity : ComponentActivity() {
     private var protectionOn by mutableStateOf(false)
+    private var bio by mutableStateOf(BiometricStatus.UNAVAILABLE)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,6 +29,7 @@ class MainActivity : ComponentActivity() {
                 Surface {
                     AppsScreen(
                         protectionOn = protectionOn,
+                        biometricStatus = bio,
                         onOpenA11ySettings = { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) },
                     )
                 }
@@ -37,6 +40,7 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         protectionOn = isServiceEnabled()
+        bio = BiometricStatus.check(this)
     }
 
     private fun isServiceEnabled(): Boolean {

@@ -30,10 +30,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.facefirst.applock.R
 import com.facefirst.applock.data.InstalledApps
+import com.facefirst.applock.lock.BiometricStatus
 
 @Composable
 fun AppsScreen(
     protectionOn: Boolean,
+    biometricStatus: BiometricStatus,
     onOpenA11ySettings: () -> Unit,
     vm: AppsViewModel = viewModel(),
 ) {
@@ -46,6 +48,17 @@ fun AppsScreen(
             Text(stringResource(R.string.a11y_disclosure), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(vertical = 4.dp))
             TextButton(onClick = onOpenA11ySettings) { Text(stringResource(R.string.open_a11y_settings)) }
         }
+        Text(
+            stringResource(
+                when (biometricStatus) {
+                    BiometricStatus.STRONG -> R.string.bio_strong
+                    BiometricStatus.WEAK_ONLY -> R.string.bio_weak
+                    BiometricStatus.NOT_ENROLLED -> R.string.bio_not_enrolled
+                    else -> R.string.bio_none
+                }
+            ),
+            style = MaterialTheme.typography.bodySmall,
+        )
         Text(
             pluralStringResource(R.plurals.locked_count, s.totalLocked, s.totalLocked),
             style = MaterialTheme.typography.titleMedium,
