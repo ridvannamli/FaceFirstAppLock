@@ -10,7 +10,8 @@ Biyometrik veri/şablon saklanmaz. PIN: salt + PBKDF2, Keystore ile sarma, artan
 - Erişilebilirlik: canRetrieveWindowContent=false, yalnızca typeWindowStateChanged; paket adı dışında veri okunmaz.
 
 ## Uygulama içi yüz tanıma (0.2.0)
-- Kareler yalnızca bellekte işlenir; kaydedilmez, ağa gönderilmez (modeller cihazda çalışır, internet izni kullanılmaz).
+- Kareler yalnızca bellekte işlenir; kaydedilmez, uygulama kodu tarafından ağa gönderilmez (modeller cihazda çalışır).
+- İnternet izni VAR: e-posta kurtarma için gerekli; ayrıca Google ML Kit kütüphanesi kendi kullanım/performans ölçümlerini Google'a gönderebilir (Google belgelerine göre görüntü içermez; bu trafik tarafımızca incelenmedi). Play veri güvenliği formunda beyan edilmeli.
 - Şablonlar (5 adet, 128 boyut) Keystore AES-256-GCM ile şifreli; anahtar cihazdan çıkmaz; yedekleme kapalı.
 - Kabul koşulu: tek yüz, yeterli yakınlık ve ışık, düz bakış, iki göz açık, canlılık ≥ eşik, benzerlik ≥ eşik; art arda 3 kare.
 - Deneme sınırı: her yüz denemesi başlarken sayılır (yarıda bırakma/yeniden açma sınırsız deneme vermez); 3 başarısız denemeden sonra yalnızca PIN. PIN girişi ve başarılı yüz sayacı sıfırlar.
