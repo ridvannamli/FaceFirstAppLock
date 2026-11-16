@@ -25,10 +25,8 @@ import com.facefirst.applock.BuildConfig
 import com.facefirst.applock.R
 import com.facefirst.applock.data.PinRepository
 import com.facefirst.applock.data.PolicyRepository
-import com.facefirst.applock.data.GoogleAuth
-import com.facefirst.applock.data.GoogleLinkStore
 import com.facefirst.applock.ui.AuthScreen
-import com.facefirst.applock.ui.GoogleResetFlow
+import com.facefirst.applock.ui.ResetFlow
 
 /** Kilit ekranı: önce uygulama içi yüz tanıma, olmazsa uygulama PIN'i. Sistem biyometrisi/parmak izi kullanılmaz. */
 class UnlockActivity : ComponentActivity() {
@@ -36,8 +34,6 @@ class UnlockActivity : ComponentActivity() {
     private var resumes by mutableIntStateOf(0)
     private var resetting by mutableStateOf(false)
     private val repo by lazy { PinRepository.create(this) }
-    private val gAuth = GoogleAuth()
-    private val gStore by lazy { GoogleLinkStore(this) }
     private val policies by lazy { PolicyRepository(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,8 +46,8 @@ class UnlockActivity : ComponentActivity() {
                 Surface(Modifier.fillMaxSize().safeDrawingPadding()) {
                     val challenge by policies.faceChallenge.collectAsState(initial = null)
                     val ch = challenge
-                    if (resetting) GoogleResetFlow(
-                        auth = gAuth, store = gStore, repo = repo, onCancel = { resetting = false },
+                    if (resetting) ResetFlow(
+                        repo = repo, onCancel = { resetting = false },
                         onFinished = { LockRuntime.machine?.onScreenOff(); unlock() }, // önceki oturumlar sıfırlanır
                     ) else if (ch != null) key(target, resumes) {
                         AuthScreen(

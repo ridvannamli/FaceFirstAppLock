@@ -8,11 +8,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -25,11 +26,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.facefirst.applock.R
-import com.facefirst.applock.data.GoogleAuth
-import com.facefirst.applock.data.GoogleLinkStore
-import com.facefirst.applock.data.GoogleResult
 import com.facefirst.applock.data.PinRepository
 import com.facefirst.applock.data.PinResult
 import com.facefirst.applock.face.Challenge
@@ -73,94 +72,99 @@ fun PinGate(repo: PinRepository, length: Int, onSuccess: () -> Unit, onCancel: (
     }
 }
 
-/** PIN kurtarma için Google hesabı bağlama. Telefonun ekran kilidi yoksa bağlanamaz (sıfırlamada ikinci etken). */
+/** Kurtarma kodunu bir kez gösterir. Kod saklanmaz; kullanıcı not etmelidir. */
 @Composable
-fun GoogleLinkFlow(auth: GoogleAuth, store: GoogleLinkStore, onDone: () -> Unit, onSkip: () -> Unit) {
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    var busy by remember { mutableStateOf(false) }
-    var err by remember { mutableStateOf<String?>(null) }
-    val secure = remember { DeviceLock.isSecure(context) }
-    Page {
-        Text(stringResource(R.string.g_link_title), style = MaterialTheme.typography.titleLarge)
-        Text(stringResource(R.string.g_link_info), Modifier.padding(8.dp), style = MaterialTheme.typography.bodySmall)
-        if (!secure) Text(stringResource(R.string.g_need_lock), color = MaterialTheme.colorScheme.error)
-        err?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-        if (busy) CircularProgressIndicator() else Button(enabled = secure, onClick = {
-            busy = true; err = null
-            scope.launch {
-                when (val r = auth.signIn(context)) {
-                    is GoogleResult.Ok -> { store.save(r.claims); onDone() }
-                    GoogleResult.Cancelled -> {}
-                    GoogleResult.Disabled -> err = context.getString(R.string.g_disabled)
-                    is GoogleResult.Error -> err = context.getString(R.string.g_error, r.detail)
-                }
-                busy = false
-            }
-        }) { Text(stringResource(R.string.g_link_button)) }
-        TextButton(onClick = onSkip) { Text(stringResource(R.string.g_skip)) }
-    }
+fun RecoveryCodeScreen(code: String, onDone: () -> Unit) = Page {
+    Text(stringResource(R.string.rc_title), style = MaterialTheme.typography.titleLarge)
+    Text(code, Modifier.padding(vertical = 20.dp), style = MaterialTheme.typography.headlineMedium, fontFamily = FontFamily.Monospace)
+    Text(stringResource(R.string.rc_info), Modifier.padding(8.dp), style = MaterialTheme.typography.bodySmall)
+    Button(onClick = onDone) { Text(stringResource(R.string.rc_done)) }
 }
 
 /**
- * PIN'imi unuttum: (1) telefonun ekran kilidi, (2) bağlı Google hesabıyla giriş, (3) yüz kayıtlıysa yüz doğrulama
- * (rastgele hareketli), sonra yeni PIN. Üçü de geçilmeden PIN değişmez.
+ * PIN'imi unuttum. İki yol:
+ *  (A) telefonun ekran kilidi + canlılık ve rastgele hareketli yüz doğrulaması,
+ *  (B) kurulumda verilen kurtarma kodu.
+ * Hatalı denemeler ortak, artan beklemeyle sınırlanır. Sunucu/internet gerekmez.
  */
 @Composable
-fun GoogleResetFlow(auth: GoogleAuth, store: GoogleLinkStore, repo: PinRepository, onFinished: () -> Unit, onCancel: () -> Unit) {
+fun ResetFlow(repo: PinRepository, onFinished: () -> Unit, onCancel: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val linkedSub by store.sub.collectAsState(initial = null)
-    val masked by store.masked.collectAsState(initial = null)
-    var step by remember { mutableIntStateOf(0) } // 0 başlangıç, 1 yüz, 2 yeni PIN
-    var busy by remember { mutableStateOf(false) }
+    val hasCode by repo.hasRecovery.collectAsState(initial = false)
+    var step by remember { mutableIntStateOf(0) } // 0 seçim, 1 yüz, 2 kod, 3 yeni PIN, 4 yeni kod
     var err by remember { mutableStateOf<String?>(null) }
+    var input by remember { mutableStateOf("") }
+    var viaCode by remember { mutableStateOf(false) }
+    var newCode by remember { mutableStateOf("") }
     var templates by remember { mutableStateOf<List<FloatArray>?>(null) }
     val challenge = remember { Challenge.entries.random() }
 
+    LaunchedEffect(Unit) {
+        val cam = androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.CAMERA) ==
+            android.content.pm.PackageManager.PERMISSION_GRANTED
+        if (cam) templates = withContext(Dispatchers.IO) { FaceStore(context).load() }
+    }
+    fun lockedMsg(ms: Long) = context.getString(R.string.pin_locked, ms / 1000 + 1)
+
     when (step) {
-        2 -> PinFlow(
+        4 -> RecoveryCodeScreen(newCode) { onFinished() }
+        3 -> PinFlow(
             requireOld = false, verifyOld = { PinResult.NotSet },
-            save = { pin, len, _ -> repo.setPin(pin, len); onFinished() }, onCancel = onCancel,
+            save = { pin, len, _ ->
+                repo.setPin(pin, len)
+                if (viaCode) { newCode = repo.newRecoveryCode(); step = 4 } else onFinished() // kullanılan kod yenilenir
+            },
+            onCancel = onCancel,
         )
+        2 -> Page {
+            Text(stringResource(R.string.rc_enter_title), style = MaterialTheme.typography.titleLarge)
+            OutlinedTextField(
+                value = input, onValueChange = { input = it.take(20) }, singleLine = true,
+                label = { Text(stringResource(R.string.rc_hint)) }, modifier = Modifier.padding(vertical = 12.dp),
+            )
+            err?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+            Button(onClick = {
+                scope.launch {
+                    when (val r = repo.verifyRecovery(input)) {
+                        PinResult.Success -> { err = null; viaCode = true; step = 3 }
+                        is PinResult.Wrong -> err = if (r.retryAfterMs > 0) lockedMsg(r.retryAfterMs) else context.getString(R.string.rc_wrong)
+                        is PinResult.Locked -> err = lockedMsg(r.retryAfterMs)
+                        PinResult.NotSet -> err = context.getString(R.string.rc_none)
+                    }
+                }
+            }) { Text(stringResource(R.string.rc_verify)) }
+            TextButton(onClick = { err = null; step = 0 }) { Text(stringResource(R.string.cancel)) }
+        }
         1 -> Page {
-            Text(stringResource(R.string.g_face_step), style = MaterialTheme.typography.titleLarge)
+            Text(stringResource(R.string.rs_face_step), style = MaterialTheme.typography.titleLarge)
             FaceCheck(templates.orEmpty(), challenge) { ok ->
-                if (ok) step = 2 else { err = context.getString(R.string.g_face_failed); step = 0 }
+                scope.launch {
+                    if (ok) { repo.clearResetFails(); viaCode = false; err = null; step = 3 }
+                    else { repo.recordResetFail(); err = context.getString(R.string.rs_face_failed); step = 0 }
+                }
             }
             TextButton(onClick = onCancel) { Text(stringResource(R.string.cancel)) }
         }
         else -> Page {
-            Text(stringResource(R.string.g_reset_title), style = MaterialTheme.typography.titleLarge)
-            val sub = linkedSub
-            if (!auth.enabled || sub == null) {
-                Text(stringResource(R.string.g_not_linked), Modifier.padding(8.dp))
-            } else {
-                Text(stringResource(R.string.g_reset_info, masked ?: ""), Modifier.padding(8.dp), style = MaterialTheme.typography.bodySmall)
-                err?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-                if (busy) CircularProgressIndicator() else Button(onClick = {
+            Text(stringResource(R.string.rs_title), style = MaterialTheme.typography.titleLarge)
+            Text(stringResource(R.string.rs_info), Modifier.padding(8.dp), style = MaterialTheme.typography.bodySmall)
+            err?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(8.dp)) }
+            if (templates != null) {
+                Button(onClick = {
                     err = null
-                    if (!DeviceLock.isSecure(context)) { err = context.getString(R.string.g_need_lock); return@Button }
-                    busy = true
-                    DeviceLock.confirm(context as Activity, context.getString(R.string.g_reset_title)) { ok ->
-                        if (!ok) { busy = false; err = context.getString(R.string.g_lock_failed); return@confirm }
-                        scope.launch {
-                            when (val r = auth.signIn(context)) {
-                                is GoogleResult.Ok -> if (r.claims.sub == sub) {
-                                    val hasCam = androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.CAMERA) ==
-                                        android.content.pm.PackageManager.PERMISSION_GRANTED
-                                    templates = if (hasCam) withContext(Dispatchers.IO) { FaceStore(context).load() } else null
-                                    step = if (templates != null) 1 else 2
-                                } else err = context.getString(R.string.g_wrong_account)
-                                GoogleResult.Cancelled -> {}
-                                GoogleResult.Disabled -> err = context.getString(R.string.g_disabled)
-                                is GoogleResult.Error -> err = context.getString(R.string.g_error, r.detail)
-                            }
-                            busy = false
+                    scope.launch {
+                        val rem = repo.resetRemaining()
+                        if (rem > 0) { err = lockedMsg(rem); return@launch }
+                        if (!DeviceLock.isSecure(context)) { err = context.getString(R.string.rs_need_lock); return@launch }
+                        DeviceLock.confirm(context as Activity, context.getString(R.string.rs_title)) { ok ->
+                            if (ok) step = 1 else err = context.getString(R.string.rs_lock_failed)
                         }
                     }
-                }) { Text(stringResource(R.string.g_reset_button)) }
-            }
+                }) { Text(stringResource(R.string.rs_face_button)) }
+            } else Text(stringResource(R.string.rs_no_face), Modifier.padding(8.dp), style = MaterialTheme.typography.bodySmall)
+            if (hasCode) Button(onClick = { err = null; input = ""; step = 2 }, modifier = Modifier.padding(top = 8.dp)) { Text(stringResource(R.string.rc_button)) }
+            if (templates == null && !hasCode) Text(stringResource(R.string.rs_none), color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(8.dp))
             TextButton(onClick = onCancel) { Text(stringResource(R.string.cancel)) }
         }
     }

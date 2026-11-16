@@ -30,14 +30,12 @@ import androidx.lifecycle.lifecycleScope
 import com.facefirst.applock.data.PinRepository
 import com.facefirst.applock.data.PinResult
 import com.facefirst.applock.data.PolicyRepository
-import com.facefirst.applock.data.GoogleAuth
-import com.facefirst.applock.data.GoogleLinkStore
 import com.facefirst.applock.face.FaceStore
 import com.facefirst.applock.lock.LockAccessibilityService
 import com.facefirst.applock.lock.LockRuntime
 import com.facefirst.applock.ui.AppsScreen
 import com.facefirst.applock.ui.AuthScreen
-import com.facefirst.applock.ui.GoogleLinkFlow
+import com.facefirst.applock.ui.RecoveryCodeScreen
 import com.facefirst.applock.ui.FaceEnroll
 import com.facefirst.applock.ui.PinFlow
 import com.facefirst.applock.ui.PinGate
@@ -46,15 +44,13 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
     private val repo by lazy { PinRepository.create(this) }
     private val policies by lazy { PolicyRepository(this) }
-    private val gAuth = GoogleAuth()
-    private val gStore by lazy { GoogleLinkStore(this) }
     private val faceStore by lazy { FaceStore(this) }
     private var protectionOn by mutableStateOf(false)
     private var changing by mutableStateOf(false)
-    private var emailStep by mutableStateOf(0)       // 0 yok, 1 PIN kapısı, 2 Google hesabı bağlama
+    private var codeStep by mutableStateOf(false)    // yeni kurtarma kodu öncesi PIN kapısı
+    private var shownCode by mutableStateOf<String?>(null) // bir kez gösterilecek kurtarma kodu
     private var enrollStep by mutableStateOf(0)      // 0 yok, 1 PIN kapısı, 2 yüz kaydı
     private var disableStep by mutableStateOf(false) // genel korumayı kapatmadan önce PIN kapısı
-    private var skipRecovery by mutableStateOf(false)
     private var authed by mutableStateOf(false)      // uygulamanın kendi ayarları da korunur
     private var resumes by mutableIntStateOf(0)
     private var faceEnrolled by mutableStateOf(false)
@@ -68,17 +64,17 @@ class MainActivity : ComponentActivity() {
                 Surface(Modifier.safeDrawingPadding()) {
                     val hasPin by repo.hasPin.collectAsState(initial = null)
                     val len by repo.pinLength.collectAsState(initial = 4)
-                    val masked by gStore.masked.collectAsState(initial = "…")
+                    val hasCode by repo.hasRecovery.collectAsState(initial = null)
                     val challenge by policies.faceChallenge.collectAsState(initial = null)
                     val cameraPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
                         if (ok) enrollStep = 1
                     }
                     val ch = challenge
                     when {
-                        hasPin == null || masked == "…" || ch == null -> {}
+                        hasPin == null || hasCode == null || ch == null -> {}
                         hasPin == false -> PinFlow(
                             requireOld = false, verifyOld = { PinResult.NotSet },
-                            save = { pin, l, _ -> repo.setPin(pin, l); authed = true }, onCancel = null,
+                            save = { pin, l, _ -> repo.setPin(pin, l); shownCode = repo.newRecoveryCode(); authed = true }, onCancel = null,
                         )
                         !authed -> key(resumes) {
                             AuthScreen(
@@ -86,6 +82,7 @@ class MainActivity : ComponentActivity() {
                                 onSuccess = { authed = true }, onCancel = { finish() }, onForgot = null,
                             )
                         }
+                        shownCode != null -> RecoveryCodeScreen(shownCode.orEmpty()) { shownCode = null }
                         changing -> PinFlow(
                             requireOld = true, oldLength = len, verifyOld = { repo.verify(it) },
                             save = { pin, l, old -> repo.changePin(old.orEmpty(), pin, l); changing = false },
@@ -101,15 +98,13 @@ class MainActivity : ComponentActivity() {
                             onDone = { list -> faceStore.save(list); faceEnrolled = true; enrollStep = 0 },
                             onCancel = { enrollStep = 0 },
                         )
-                        emailStep == 1 -> PinGate(repo, len, onSuccess = { emailStep = 2 }, onCancel = { emailStep = 0 })
-                        emailStep == 2 || (masked.isNullOrBlank() && !skipRecovery && gAuth.enabled) -> GoogleLinkFlow(
-                            gAuth, gStore, onDone = { emailStep = 0 },
-                            onSkip = { if (emailStep == 2) emailStep = 0 else skipRecovery = true },
-                        )
+                        codeStep -> PinGate(repo, len, onSuccess = {
+                            codeStep = false
+                            lifecycleScope.launch { shownCode = repo.newRecoveryCode() }
+                        }, onCancel = { codeStep = false })
                         else -> AppsScreen(
-                            recoveryMasked = masked?.takeIf { it.isNotBlank() },
-                            recoveryEnabled = gAuth.enabled,
-                            onChangeEmail = { emailStep = if (masked.isNullOrBlank()) 2 else 1 },
+                            hasRecoveryCode = hasCode == true,
+                            onNewCode = { codeStep = true },
                             protectionOn = protectionOn,
                             faceEnrolled = faceEnrolled,
                             challengeOn = ch,

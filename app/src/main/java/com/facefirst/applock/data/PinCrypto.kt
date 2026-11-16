@@ -38,3 +38,13 @@ object Throttle {
         else -> 30 * 60_000
     }
 }
+
+/** Kurtarma kodu: 12 karakter (60 bit), karışabilecek harfler yok (I, O, 0, 1). Biçim: XXXX-XXXX-XXXX. */
+object RecoveryCode {
+    const val ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+    fun generate(random: java.util.Random = SecureRandom()): String =
+        (0 until 12).map { ALPHABET[random.nextInt(ALPHABET.length)] }.joinToString("").chunked(4).joinToString("-")
+    /** Kullanıcı girişini karşılaştırma biçimine getirir (büyük harf, ayraçsız). */
+    fun normalize(input: String): String = input.uppercase().filter { it in ALPHABET }
+    fun wellFormed(input: String): Boolean = normalize(input).length == 12
+}

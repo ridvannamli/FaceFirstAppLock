@@ -130,3 +130,50 @@ class FacePinGateTest {
         assertTrue(r.faceAllowed())
     }
 }
+
+class RecoveryCodeTest {
+    @get:org.junit.Rule val tmp = org.junit.rules.TemporaryFolder()
+    private val clock = FakeTime()
+    private val pepper = object : Pepper { override fun mac(data: ByteArray) = data.copyOf(32) }
+    private fun repo() = PinRepository(
+        PreferenceDataStoreFactory.create(scope = CoroutineScope(Dispatchers.IO + Job())) { tmp.newFile("r.preferences_pb").also { it.delete() } },
+        pepper, clock, iterations = 1_000,
+    )
+    @Test fun codeFormatAndNormalize() {
+        val c = com.facefirst.applock.data.RecoveryCode.generate(java.util.Random(1))
+        assertTrue(Regex("[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}").matches(c))
+        assertEquals("ABCDEFGH2345", com.facefirst.applock.data.RecoveryCode.normalize(" abcd-efgh 2345 "))
+        assertFalse(com.facefirst.applock.data.RecoveryCode.wellFormed("ABCD"))
+        assertTrue(com.facefirst.applock.data.RecoveryCode.generate() != com.facefirst.applock.data.RecoveryCode.generate())
+    }
+    @Test fun verifyAcceptsCodeInAnyCaseAndIsNotConsumedUntilRenewed() = runBlocking {
+        val r = repo(); r.setPin("1234", 4)
+        assertEquals(PinResult.NotSet, r.verifyRecovery("AAAA-AAAA-AAAA")); assertFalse(r.hasRecovery.first())
+        val code = r.newRecoveryCode(); assertTrue(r.hasRecovery.first())
+        assertEquals(PinResult.Success, r.verifyRecovery(code.lowercase().replace("-", " ")))
+        assertEquals(PinResult.Success, r.verifyRecovery(code))            // yeni PIN kaydedilene dek geçerli kalır
+        val code2 = r.newRecoveryCode()
+        assertTrue(r.verifyRecovery(code) is PinResult.Wrong)              // yenilenince eski kod geçersiz
+        assertEquals(PinResult.Success, r.verifyRecovery(code2))
+    }
+    @Test fun wrongCodesAreThrottledAndClockTamperProof() = runBlocking {
+        val r = repo(); r.setPin("1234", 4); val code = r.newRecoveryCode()
+        repeat(4) { assertEquals(0, (r.verifyRecovery("ZZZZ-ZZZZ-ZZZZ") as PinResult.Wrong).retryAfterMs) }
+        assertEquals(30_000, (r.verifyRecovery("ZZZZ-ZZZZ-ZZZZ") as PinResult.Wrong).retryAfterMs)
+        clock.wall += 3_600_000; clock.elapsed += 1_000
+        assertTrue(r.verifyRecovery(code) is PinResult.Locked)             // doğru kod bile bekleme süresince reddedilir
+        clock.advance(31_000)
+        assertEquals(PinResult.Success, r.verifyRecovery(code)); assertEquals(0L, r.resetRemaining())
+    }
+    @Test fun failedFaceResetsShareTheSameThrottle() = runBlocking {
+        val r = repo(); r.setPin("1234", 4); val code = r.newRecoveryCode()
+        repeat(5) { r.recordResetFail() }
+        assertTrue(r.resetRemaining() > 0); assertTrue(r.verifyRecovery(code) is PinResult.Locked)
+        r.clearResetFails(); assertEquals(0L, r.resetRemaining())
+    }
+    @Test fun recoveryThrottleDoesNotAffectPinAndViceVersa() = runBlocking {
+        val r = repo(); r.setPin("1234", 4); r.newRecoveryCode()
+        repeat(5) { r.recordResetFail() }
+        assertEquals(PinResult.Success, r.verify("1234"))
+    }
+}

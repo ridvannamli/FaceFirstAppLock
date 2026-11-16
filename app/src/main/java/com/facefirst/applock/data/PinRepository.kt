@@ -51,9 +51,17 @@ class PinRepository(
     private val kOkElapsed = longPreferencesKey("pin_ok_elapsed")
     private val kOkBoot = intPreferencesKey("pin_ok_boot")
     private val kFaceFails = intPreferencesKey("face_fails")
+    private val kRcSalt = stringPreferencesKey("rc_salt")
+    private val kRcHash = stringPreferencesKey("rc_hash")
+    private val kRsFailed = intPreferencesKey("rs_failed")
+    private val kRsUntil = longPreferencesKey("rs_until")
+    private val kRsDur = longPreferencesKey("rs_dur")
+    private val kRsElapsed = longPreferencesKey("rs_elapsed")
+    private val kRsBoot = intPreferencesKey("rs_boot")
 
     val hasPin: Flow<Boolean> = store.data.map { it[kHash] != null }
     val pinLength: Flow<Int> = store.data.map { it[kLen] ?: 4 }
+    val hasRecovery: Flow<Boolean> = store.data.map { it[kRcHash] != null }
 
     /** PIN hiç düz metin saklanmaz/loglanmaz. 4 veya 6 hane, yalnızca rakam. */
     suspend fun setPin(pin: String, length: Int) {
@@ -118,6 +126,53 @@ class PinRepository(
     }
     suspend fun recordFaceFail() { store.edit { it[kFaceFails] = (it[kFaceFails] ?: 0) + 1 } }
     suspend fun recordFaceSuccess() { store.edit { it[kFaceFails] = 0 } }
+
+    // ---- PIN sıfırlama (kurtarma kodu / ekran kilidi + yüz): ortak, saat oynamasına dayanıklı bekleme ----
+
+    /** Yeni kurtarma kodu üretir (eskisini geçersiz kılar). Kod yalnızca burada, bir kez düz metin döner; hash saklanır. */
+    suspend fun newRecoveryCode(): String {
+        val code = RecoveryCode.generate()
+        val salt = PinCrypto.newSalt()
+        val hash = PinCrypto.hash(RecoveryCode.normalize(code), salt, pepper, iterations)
+        val enc = Base64.getEncoder()
+        store.edit { it[kRcSalt] = enc.encodeToString(salt); it[kRcHash] = enc.encodeToString(hash) }
+        return code
+    }
+
+    suspend fun resetRemaining(now: TimeSnap = time.now()): Long {
+        val p = store.data.first()
+        val dur = p[kRsDur] ?: 0
+        if (dur <= 0) return 0
+        val rem = if (p[kRsBoot] == now.boot) dur - (now.elapsed - (p[kRsElapsed] ?: 0)) else (p[kRsUntil] ?: 0) - now.wall
+        return maxOf(0, rem)
+    }
+
+    /** Başarısız sıfırlama denemesi (yanlış kod ya da yüz doğrulanamadı). Dönen: yeni bekleme süresi (ms). */
+    suspend fun recordResetFail(now: TimeSnap = time.now()): Long {
+        var delay = 0L
+        store.edit {
+            val failed = (it[kRsFailed] ?: 0) + 1
+            delay = Throttle.delayMs(failed)
+            it[kRsFailed] = failed; it[kRsDur] = delay; it[kRsUntil] = if (delay > 0) now.wall + delay else 0
+            it[kRsElapsed] = now.elapsed; it[kRsBoot] = now.boot
+        }
+        return delay
+    }
+
+    suspend fun clearResetFails() { store.edit { it[kRsFailed] = 0; it[kRsDur] = 0; it[kRsUntil] = 0 } }
+
+    /** Kurtarma kodunu doğrular. Kod burada TÜKETİLMEZ; yeni PIN kaydedildikten sonra [newRecoveryCode] ile yenilenir. */
+    suspend fun verifyRecovery(input: String, now: TimeSnap = time.now()): PinResult {
+        val p = store.data.first()
+        val hashStr = p[kRcHash] ?: return PinResult.NotSet
+        val rem = resetRemaining(now)
+        if (rem > 0) return PinResult.Locked(rem)
+        val dec = Base64.getDecoder()
+        val actual = PinCrypto.hash(RecoveryCode.normalize(input), dec.decode(p[kRcSalt]!!), pepper, iterations)
+        if (RecoveryCode.wellFormed(input) && PinCrypto.equalConstantTime(actual, dec.decode(hashStr))) { clearResetFails(); return PinResult.Success }
+        val delay = recordResetFail(now)
+        return PinResult.Wrong(store.data.first()[kRsFailed] ?: 0, delay)
+    }
 
     /** Eski PIN doğrulanırsa yenisini kaydeder. */
     suspend fun changePin(old: String, new: String, length: Int, now: TimeSnap = time.now()): PinResult {

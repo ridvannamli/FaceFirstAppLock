@@ -49,9 +49,8 @@ fun AppsScreen(
     onToggleChallenge: (Boolean) -> Unit,
     onOpenA11ySettings: () -> Unit,
     onChangePin: () -> Unit,
-    recoveryMasked: String?,
-    recoveryEnabled: Boolean,
-    onChangeEmail: () -> Unit,
+    hasRecoveryCode: Boolean,
+    onNewCode: () -> Unit,
     onRequestDisable: () -> Unit,
     vm: AppsViewModel = viewModel(),
 ) {
@@ -86,12 +85,12 @@ fun AppsScreen(
             style = MaterialTheme.typography.titleMedium,
         )
         Text(
-            if (recoveryMasked != null) stringResource(R.string.rec_status_on, recoveryMasked) else stringResource(R.string.rec_status_off),
+            stringResource(if (hasRecoveryCode) R.string.rc_status_on else R.string.rc_status_off),
             style = MaterialTheme.typography.bodySmall,
         )
         Row {
             TextButton(onClick = onChangePin) { Text(stringResource(R.string.change_pin)) }
-            if (recoveryEnabled) TextButton(onClick = onChangeEmail) { Text(stringResource(R.string.change_email)) }
+            TextButton(onClick = onNewCode) { Text(stringResource(if (hasRecoveryCode) R.string.rc_renew else R.string.rc_create)) }
         }
         if (com.facefirst.applock.BuildConfig.DEBUG) {
             val d by com.facefirst.applock.lock.LockRuntime.diag.collectAsState()

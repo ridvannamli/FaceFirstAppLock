@@ -14,7 +14,6 @@
 - Eşleşme (0.60) ve canlılık (0.70) eşikleri masaüstünde halka açık yüz veri kümesiyle kabaca sınandı; gerçek cihazda yanlış kabul/yanlış ret oranı ÖLÇÜLMEDİ.
 - "Sadece yüz zorlanamaz / parmak izi kapatılamaz" maddesi 0.2.0 ile geçersiz: sistem biyometrisi artık kullanılmıyor.
 - Kamera izni verilmezse ya da karanlıkta yüz tanıma çalışmaz, PIN istenir.
-- Google ile sıfırlama (0.3.0): yüz KAYITLI DEĞİLSE sıfırlama yalnızca "telefon ekran kilidi + telefonda açık Google hesabı" ile yapılır; telefonun ekran kilidini bilen biri (ör. aile üyesi) uygulama PIN'ini sıfırlayabilir. Yüz kaydı bu açığı büyük ölçüde kapatır (yüz tanımanın bilinen sınırlarıyla).
-- Sıfırlamadaki yüz denemeleri kalıcı olarak sayılmıyor (her deneme ekran kilidi + Google girişi gerektirir).
-- Google hesabı olmayan ya da Play Hizmetleri bulunmayan cihazlarda PIN kurtarma yoktur. Sıfırlama internet gerektirir.
-- Google istemci kimliği imza anahtarına bağlıdır; anahtar değişirse Google girişi çalışmaz (yeniden kayıt gerekir).
+- PIN sıfırlama (0.3.1): yüz kayıtlı değilse VE kurtarma kodu kaybolduysa PIN sıfırlanamaz; tek çare uygulamayı kaldırıp yeniden kurmaktır (tüm ayarlar silinir).
+- Telefonun ekran kilidini bilen biri yüz doğrulamasını (ör. yüksek kaliteli video ile) aşabilirse PIN'i sıfırlayabilir. Kurtarma kodunu gören herkes PIN'i sıfırlayabilir.
+- Yüz kaydı ve kurtarma kodu cihaza bağlıdır; telefon değişince taşınmaz.

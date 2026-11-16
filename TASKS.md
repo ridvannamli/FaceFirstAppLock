@@ -14,3 +14,4 @@ Gerçek cihaz testleri: hepsi "bekleniyor".
 - [x] Y (0.2.0) Uygulama içi yüz tanıma: kayıt, eşleşme, canlılık, deneme sınırı, periyodik PIN, yüksek güvenlik modu (kod; cihaz testi bekliyor)
 - [ ] Y-kalibrasyon: cihaz ölçümleriyle eşikler; uygulama bazlı güvenlik seviyesi
 - [x] G (0.3.0) Google ile PIN sıfırlama kodu (cihaz testi istemci kimliği bekliyor)
+- [x] R (0.3.1) Sunucusuz PIN sıfırlama: ekran kilidi + yüz, kurtarma kodu (cihaz testi bekliyor)
