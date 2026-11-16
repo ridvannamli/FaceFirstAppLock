@@ -9,13 +9,12 @@
 - Android: testDebugUnitTest assembleDebug lintDebug assembleRelease BAŞARILI (40 birim testi). Sunucu 12/12. Cihaz/canlı e-posta/R8 çalışma zamanı DOĞRULANMADI.
 ## Bilinen sorunlar
 - BEKLEYEN: kurtarma servisi hesapları (Cloudflare+Brevo, docs/RECOVERY_SETUP.md) ve gerçek cihaz testleri (liste, servis, yüz, parmak izi, PIN, kurtarma). APK teslim yolu belirlenmedi.
-## KALDIĞIMIZ YERİ (kullanıcı ertelendi, 2026-11-08)
-- 0.1.4 (minSdk 29 / Android 10, kullanıcı kararı 2026-11-16) derlendi ve gönderildi; telefonda kurulu olan 0.1.3. Sürüm 0.1.3 (debug) telefonda (Samsung A53 5G) kurulu. KÖK NEDEN BULUNDU: Adidas kilitlenmiyor çünkü erişilebilirlik izni verilmedi (TEŞHİS: servis BAĞLI DEĞİL).
-- Kullanıcı sırada yapacak (ertelendi): 1) "Kullanılmayan uygulamayı yönet" kapat, 2) Ayarlar>Erişilebilirlik>Yüklü uygulamalar>FaceFirst Kilit aç (gerekirse ⋮ "Kısıtlı ayara izin ver"), 3) FaceFirst'i aç, "Koruma açık/servis bağlı" gör, Adidas'ı aç, TEŞHİS satırını bildir.
-- Sonuç gelince: T1 (Takvim/Adidas kilidi), sonra kilit ekranı gecikmesi, PIN, yeniden başlatma, izin iptali testleri; "TEŞHİS: kilit ekranı açılıyor ama görünmüyor" çıkarsa arka plandan ekran açma (BAL) sorununa bak.
-- Kararlar: yalnız sistem yüz tanıması, parmak izi ayrıca kapatılamaz (Android sınırı, kullanıcı bilgilendirildi); yüz tanınmazsa PIN (2 hata sonrası otomatik); uygulama içi kamera tanıma YOK; genel süre varsayılan "Her girişte".
-- Açık: e-posta kurtarma servisi hesapları (Cloudflare+Brevo) kurulmadı; release imza anahtarı yok.
+## KALDIĞIMIZ YERİ (2026-11-16)
+- T1 BAŞARILI (kullanıcı, Samsung A53 5G): "Kısıtlı ayara izin ver" + erişilebilirlik izni sonrası Adidas kilidi çalışıyor. Telefondaki sürüm 0.1.3 veya 0.1.4 (kullanıcı belirtmedi).
+- Kullanıcı isteği: yalnız yüz, parmak izi olmasın. Uygulamadan yapılamaz (Android sınırı). Önerilen: Samsung ayarı "Tercih edilen biyometri = Yüz" (kullanıcı deneyecek; menünün A53'te varlığı doğrulanmadı).
+- Sıradaki testler: kilit ekranı gecikmesi, yüz, PIN (T4), ekran kapat/aç (T7), yeniden başlatma (T8), izin iptali (T9), Ayarlar kilidi (T10).
+- Açık: e-posta kurtarma hesapları (Cloudflare+Brevo), release imza anahtarı.
 ## Sonraki onaylı aşama
 - Kullanıcı: APK denemesi (docs/DEVICE_TEST_GUIDE.md), sonuçlara göre hata düzeltme; Cloudflare+Brevo kurulumu.
 ## Son güncelleme
-2026-11-16: minSdk 29 (Android 10), sürüm 0.1.4.
+2026-11-16: T1 cihazda başarılı; minSdk 29, sürüm 0.1.4.
