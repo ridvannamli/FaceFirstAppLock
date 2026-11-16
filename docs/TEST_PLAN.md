@@ -25,3 +25,4 @@ Adım adım yönergeler: docs/DEVICE_TEST_GUIDE.md. Hepsi: Gerçek cihaz testi b
 - Ekran görüntüsü alınamadı → FLAG_SECURE; 0.1.1 debug sürümünde kapalı.
 - 0.1.1 sonucu (kullanıcı): yüz onaysız açıldı (başarılı). Adidas kilidi çalışmadı; neden bilinmiyor → 0.1.2'de ana ekrana TEŞHİS satırı eklendi (yalnız debug).
 - 2026-11-16 T1 (uygulama kilidi, Adidas, Samsung A53 5G): BAŞARILI (kullanıcı bildirimi). Önceki başarısızlığın nedeni erişilebilirlik izninin verilmemiş olmasıydı (kısıtlı ayar).
+- 2026-11-16 0.2.0 Y1/Y2 (yüz kaydı ve yüzle açma, Samsung A53 5G): kullanıcı "hızlı ve güzel" bildirdi. Sayısal değerler (benzerlik/canlılık) ve saldırı testleri (Y3-Y10) henüz bildirilmedi.
