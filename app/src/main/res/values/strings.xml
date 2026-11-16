@@ -78,7 +78,7 @@
     <string name="rc_wrong">Kod yanlış.</string>
     <string name="rc_none">Kurtarma kodu tanımlı değil.</string>
     <string name="rs_title">PIN sıfırlama</string>
-    <string name="rs_info">İki yol var: telefonunun ekran kilidi ve yüz doğrulaması, ya da kurulumda verilen kurtarma kodu. İnternet gerekmez.</string>
+    <string name="rs_info">Önce kurtarma kodunu dene. Kodu da kaybettiysen telefonunun ekran kilidi ve yüz doğrulamasıyla sıfırlayabilirsin. İnternet gerekmez.</string>
     <string name="rs_face_button">Ekran kilidi ve yüz ile sıfırla</string>
     <string name="rs_face_step">Yüz doğrulaması</string>
     <string name="rs_face_failed">Yüz doğrulanamadı.</string>
@@ -87,4 +87,5 @@
     <string name="rs_lock_failed">Telefon ekran kilidi doğrulanamadı.</string>
     <string name="rs_none">Sıfırlama yolu yok: yüz kayıtlı değil ve kurtarma kodu oluşturulmamış. Tek çare uygulamayı kaldırıp yeniden kurmak.</string>
     <string name="guard_label">Kaldırma koruması: Ayarlar, Play Store ve uygulama kaldırma/yükleme penceresi de yüz ya da PIN ister. Kapatmak PIN ister.</string>
+    <string name="rs_face_button_alt">Kodu da unuttum: ekran kilidi ve yüz ile sıfırla</string>
 </resources>

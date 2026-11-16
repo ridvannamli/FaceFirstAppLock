@@ -38,6 +38,7 @@ fun PinFlow(
     save: suspend (pin: String, length: Int, old: String?) -> Unit,
     onCancel: (() -> Unit)?,
     oldLength: Int = 4,
+    onForgot: (() -> Unit)? = null,
 ) {
     var step by remember { mutableStateOf(if (requireOld) Step.OLD else Step.LENGTH) }
     var length by remember { mutableIntStateOf(4) }
@@ -93,6 +94,7 @@ fun PinFlow(
                 }
             }
         }
+        if (step == Step.OLD) onForgot?.let { TextButton(onClick = it) { Text(stringResource(R.string.forgot_pin)) } }
         onCancel?.let { TextButton(onClick = it) { Text(stringResource(R.string.cancel)) } }
     }
 }

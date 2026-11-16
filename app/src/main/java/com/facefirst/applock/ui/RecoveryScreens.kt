@@ -47,7 +47,7 @@ private fun Page(content: @Composable () -> Unit) = Column(
 
 /** Hassas işlem öncesi mevcut PIN doğrulaması (ör. yüz kaydı, Google hesabını değiştirmek). */
 @Composable
-fun PinGate(repo: PinRepository, length: Int, onSuccess: () -> Unit, onCancel: () -> Unit) {
+fun PinGate(repo: PinRepository, length: Int, onSuccess: () -> Unit, onCancel: () -> Unit, onForgot: (() -> Unit)? = null) {
     var resetKey by remember { mutableIntStateOf(0) }
     var msg by remember { mutableStateOf<Int?>(null) }
     var wait by remember { mutableLongStateOf(0L) }
@@ -68,6 +68,7 @@ fun PinGate(repo: PinRepository, length: Int, onSuccess: () -> Unit, onCancel: (
                 }
             }
         }
+        onForgot?.let { TextButton(onClick = it) { Text(stringResource(R.string.forgot_pin)) } }
         TextButton(onClick = onCancel) { Text(stringResource(R.string.cancel)) }
     }
 }
@@ -150,6 +151,7 @@ fun ResetFlow(repo: PinRepository, onFinished: () -> Unit, onCancel: () -> Unit)
             Text(stringResource(R.string.rs_title), style = MaterialTheme.typography.titleLarge)
             Text(stringResource(R.string.rs_info), Modifier.padding(8.dp), style = MaterialTheme.typography.bodySmall)
             err?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(8.dp)) }
+            if (hasCode) Button(onClick = { err = null; input = ""; step = 2 }) { Text(stringResource(R.string.rc_button)) }
             if (templates != null) {
                 Button(onClick = {
                     err = null
@@ -161,9 +163,8 @@ fun ResetFlow(repo: PinRepository, onFinished: () -> Unit, onCancel: () -> Unit)
                             if (ok) step = 1 else err = context.getString(R.string.rs_lock_failed)
                         }
                     }
-                }) { Text(stringResource(R.string.rs_face_button)) }
+                }, modifier = Modifier.padding(top = 8.dp)) { Text(stringResource(if (hasCode) R.string.rs_face_button_alt else R.string.rs_face_button)) }
             } else Text(stringResource(R.string.rs_no_face), Modifier.padding(8.dp), style = MaterialTheme.typography.bodySmall)
-            if (hasCode) Button(onClick = { err = null; input = ""; step = 2 }, modifier = Modifier.padding(top = 8.dp)) { Text(stringResource(R.string.rc_button)) }
             if (templates == null && !hasCode) Text(stringResource(R.string.rs_none), color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(8.dp))
             TextButton(onClick = onCancel) { Text(stringResource(R.string.cancel)) }
         }

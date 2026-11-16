@@ -80,9 +80,12 @@ class MainActivity : ComponentActivity() {
                             requireOld = false, verifyOld = { PinResult.NotSet },
                             save = { pin, l, _ -> repo.setPin(pin, l); shownCode = repo.newRecoveryCode(); authed = true }, onCancel = null,
                         )
-                        !authed && resetting -> ResetFlow(
+                        resetting -> ResetFlow(
                             repo = repo, onCancel = { resetting = false },
-                            onFinished = { resetting = false; LockRuntime.machine?.resetSessions(); authed = true },
+                            onFinished = {
+                                resetting = false; changing = false; disableStep = false; guardOffStep = false; enrollStep = 0; codeStep = false
+                                LockRuntime.machine?.resetSessions(); authed = true
+                            },
                         )
                         !authed -> key(resumes) {
                             AuthScreen(
@@ -94,18 +97,18 @@ class MainActivity : ComponentActivity() {
                         changing -> PinFlow(
                             requireOld = true, oldLength = len, verifyOld = { repo.verify(it) },
                             save = { pin, l, old -> repo.changePin(old.orEmpty(), pin, l); changing = false },
-                            onCancel = { changing = false },
+                            onCancel = { changing = false }, onForgot = { resetting = true },
                         )
                         disableStep -> PinGate(repo, len, onSuccess = {
                             disableStep = false
                             lifecycleScope.launch { policies.setEnabled(false); LockRuntime.machine?.resetSessions() }
-                        }, onCancel = { disableStep = false })
+                        }, onCancel = { disableStep = false }, onForgot = { resetting = true })
                         guardOffStep -> PinGate(repo, len, onSuccess = {
                             guardOffStep = false
                             lifecycleScope.launch { policies.setUninstallGuard(false) }
-                        }, onCancel = { guardOffStep = false })
+                        }, onCancel = { guardOffStep = false }, onForgot = { resetting = true })
                         // Yüz kaydı/değişimi her zaman PIN ister (yüzle yüz değiştirilemez).
-                        enrollStep == 1 -> PinGate(repo, len, onSuccess = { enrollStep = 2 }, onCancel = { enrollStep = 0 })
+                        enrollStep == 1 -> PinGate(repo, len, onSuccess = { enrollStep = 2 }, onCancel = { enrollStep = 0 }, onForgot = { resetting = true })
                         enrollStep == 2 -> FaceEnroll(
                             onDone = { list -> faceStore.save(list); faceEnrolled = true; enrollStep = 0 },
                             onCancel = { enrollStep = 0 },
@@ -113,7 +116,7 @@ class MainActivity : ComponentActivity() {
                         codeStep -> PinGate(repo, len, onSuccess = {
                             codeStep = false
                             lifecycleScope.launch { shownCode = repo.newRecoveryCode() }
-                        }, onCancel = { codeStep = false })
+                        }, onCancel = { codeStep = false }, onForgot = { resetting = true })
                         else -> AppsScreen(
                             hasRecoveryCode = hasCode == true,
                             onNewCode = { codeStep = true },

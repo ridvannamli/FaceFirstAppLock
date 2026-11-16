@@ -10,6 +10,7 @@
 ## Bilinen sorunlar
 - BEKLEYEN: cihaz testleri Y3-Y10, R1-R5, K1-K6.
 ## KALDIĞIMIZ YERİ (2026-11-16)
+- 0.4.2: kullanıcı isteği netleşti: PIN unutulunca önce KURTARMA KODU, kod da yoksa EKRAN KİLİDİ + YÜZ. "PIN'imi unuttum" artık tüm PIN sorularında var (giriş, PIN değiştir, ayar kapıları, kilit ekranı). Cihazda DENENMEDİ (R1-R5).
 - 0.4.1: kullanıcı "PIN'imi unuttum yok" bildirdi → düğme uygulamanın kendi giriş ekranına da eklendi (önceden yalnız kilit ekranındaydı). Kullanıcının hangi ekranda baktığı doğrulanmadı; cihaz sonucu bekleniyor.
 - 0.4.0: KALDIRMA KORUMASI eklendi (isteğe bağlı anahtar): Ayarlar + Play Store + sistem kaldırma/yükleme penceresi kilitlenir (docs/DECISIONS.md #13). 69 birim testi; cihazda DENENMEDİ → testler K1-K6. Samsung kaldırma penceresinin paket adı doğrulanmadı.
 - 0.3.1: PIN sıfırlama SUNUCUSUZ: (A) ekran kilidi + yüz, (B) kurtarma kodu. Google ile giriş ve e-posta kodu kaldırıldı (kullanıcı: şimdilik kişisel kullanım, ileride çok kullanıcı → o zaman e-posta kodu geri eklenebilir). Google Cloud/Cloudflare/Brevo kurulumu GEREKMİYOR.
@@ -20,4 +21,4 @@
 ## Sonraki onaylı aşama
 - Kullanıcı: APK denemesi (docs/DEVICE_TEST_GUIDE.md), sonuçlara göre hata düzeltme; Cloudflare+Brevo kurulumu.
 ## Son güncelleme
-2026-11-16: 0.4.1 giriş ekranına PIN sıfırlama eklendi.
+2026-11-16: 0.4.2 PIN sıfırlama tüm PIN ekranlarından erişilebilir; önce kod, sonra yüz.
