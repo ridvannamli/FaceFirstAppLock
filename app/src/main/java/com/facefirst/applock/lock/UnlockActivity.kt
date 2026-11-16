@@ -3,155 +3,76 @@ package com.facefirst.applock.lock
 import android.content.Intent
 import android.os.Bundle
 import android.view.WindowManager
-import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
-import androidx.biometric.BiometricPrompt
-import androidx.core.content.ContextCompat
-import androidx.fragment.app.FragmentActivity
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.ui.Alignment
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
-import androidx.lifecycle.lifecycleScope
 import com.facefirst.applock.BuildConfig
 import com.facefirst.applock.R
 import com.facefirst.applock.data.PinRepository
-import com.facefirst.applock.data.PinResult
+import com.facefirst.applock.data.PolicyRepository
 import com.facefirst.applock.data.RecoveryClient
-import com.facefirst.applock.ui.PinPad
+import com.facefirst.applock.ui.AuthScreen
 import com.facefirst.applock.ui.ResetFlow
-import androidx.compose.material3.TextButton
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 
-/**
- * Önce biyometrik (BiometricPrompt; yüz/parmak izi, sistemin sunduğu), olmazsa uygulama PIN'i.
- */
-class UnlockActivity : FragmentActivity() {
-    private lateinit var target: String
-    private var showFallback by mutableStateOf(false)
-    private var prompting = false
-    private var pinMsg by mutableStateOf<Int?>(null)
-    private var wait by mutableStateOf(0L)
-    private var resetKey by mutableStateOf(0)
-    private var pinLen by mutableStateOf(4)
+/** Kilit ekranı: önce uygulama içi yüz tanıma, olmazsa uygulama PIN'i. Sistem biyometrisi/parmak izi kullanılmaz. */
+class UnlockActivity : ComponentActivity() {
+    private var target by mutableStateOf("")
+    private var resumes by mutableIntStateOf(0)
+    private var resetting by mutableStateOf(false)
     private val repo by lazy { PinRepository.create(this) }
     private val recovery by lazy { RecoveryClient(this) }
-    private var resetting by mutableStateOf(false)
+    private val policies by lazy { PolicyRepository(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (!BuildConfig.DEBUG) window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
         target = intent.getStringExtra(EXTRA_PACKAGE) ?: run { goHome(); return }
-        lifecycleScope.launch { pinLen = repo.pinLength.first() }
         setContent {
             BackHandler { if (resetting) resetting = false else goHome() }
-            MaterialTheme {
+            MaterialTheme(colorScheme = if (isSystemInDarkTheme()) darkColorScheme() else lightColorScheme()) {
                 Surface(Modifier.fillMaxSize().safeDrawingPadding()) {
+                    val challenge by policies.faceChallenge.collectAsState(initial = null)
+                    val ch = challenge
                     if (resetting) ResetFlow(
                         client = recovery, repo = repo, onCancel = { resetting = false },
                         onFinished = { LockRuntime.machine?.onScreenOff(); unlock() }, // önceki oturumlar sıfırlanır
-                    ) else Column(
-                        Modifier.fillMaxSize().padding(24.dp),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
-                        Text(stringResource(R.string.locked_title), style = MaterialTheme.typography.titleLarge)
-                        if (showFallback) {
-                            pinMsg?.let {
-                                Text(
-                                    if (it == R.string.pin_locked) stringResource(it, wait / 1000 + 1) else stringResource(it),
-                                    color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(8.dp),
-                                )
-                            }
-                            Column(Modifier.padding(vertical = 16.dp)) {
-                                PinPad(pinLen, resetKey, enabled = wait <= 0L) { pin -> checkPin(pin) }
-                            }
-                            TextButton(onClick = { resetting = true }) { Text(stringResource(R.string.forgot_pin)) }
-                            if (BiometricStatus.check(this@UnlockActivity).usable) {
-                                Button(onClick = { showFallback = false; prompt() }) { Text(stringResource(R.string.retry_biometric)) }
-                            }
-                        }
+                    ) else if (ch != null) key(target, resumes) {
+                        AuthScreen(
+                            pinRepo = repo, title = stringResource(R.string.locked_title), challengeOn = ch,
+                            onSuccess = { unlock() }, onCancel = { goHome() }, onForgot = { resetting = true },
+                        )
                     }
                 }
             }
         }
     }
 
-    /** singleTask: kilit ekranı açıkken başka bir kilitli uygulamaya geçilirse hedef güncellenir (eski hedefe dönülmez). */
+    /** singleTask: kilit ekranı açıkken başka bir kilitli uygulamaya geçilirse hedef güncellenir. */
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
         intent.getStringExtra(EXTRA_PACKAGE)?.let { target = it }
     }
 
+    /** Her öne gelişte doğrulama baştan başlar (kamera oturumu yenilenir). */
     override fun onResume() {
         super.onResume()
-        if (!showFallback) prompt()
-    }
-
-    private fun prompt() {
-        if (prompting) return
-        if (!BiometricStatus.check(this).usable) { showFallback = true; return }
-        prompting = true
-        var fails = 0
-        lateinit var bp: BiometricPrompt
-        bp = BiometricPrompt(this, ContextCompat.getMainExecutor(this), object : BiometricPrompt.AuthenticationCallback() {
-            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                prompting = false; unlock()
-            }
-            override fun onAuthenticationFailed() {
-                // Yüz/parmak tanınmadı: birkaç denemeden sonra istemi kapat, PIN'e düş.
-                if (shouldFallBack(++fails)) bp.cancelAuthentication()
-            }
-            override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                prompting = false
-                if (errorAction(errorCode) == ErrorAction.GO_HOME) goHome() else showFallback = true
-            }
-        })
-        bp.authenticate(
-            BiometricPrompt.PromptInfo.Builder()
-                .setTitle(getString(R.string.locked_title))
-                .setAllowedAuthenticators(BIOMETRIC_WEAK)
-                .setConfirmationRequired(false)
-                .setNegativeButtonText(getString(R.string.use_pin))
-                .build()
-        )
-    }
-
-    private fun checkPin(pin: String) {
-        lifecycleScope.launch {
-            when (val r = repo.verify(pin)) {
-                is PinResult.Success -> unlock()
-                is PinResult.Wrong -> { pinMsg = if (r.retryAfterMs > 0) R.string.pin_locked else R.string.pin_wrong; startWait(r.retryAfterMs) }
-                is PinResult.Locked -> { pinMsg = R.string.pin_locked; startWait(r.retryAfterMs) }
-                PinResult.NotSet -> goHome()
-            }
-            resetKey++
-        }
-    }
-
-    private fun startWait(ms: Long) {
-        wait = ms
-        if (ms <= 0) return
-        lifecycleScope.launch {
-            while (wait > 0) { delay(1000); wait -= 1000 }
-            wait = 0; pinMsg = null
-        }
+        resumes++
     }
 
     private fun unlock() {

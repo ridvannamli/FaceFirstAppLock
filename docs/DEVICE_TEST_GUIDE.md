@@ -13,3 +13,15 @@ Hazırlık: APK kurulu, PIN kurulu, erişilebilirlik izni açık, Takvim kilitli
 **T11 Çoklu pencere / son uygulamalar.** Kilitli uygulamayı bölünmüş ekranda aç; son uygulamalardan geri dön → kilit gelmeli. İçeriğin kısa görünüp görünmediğini yaz.
 **T12 Süreler.** 30 sn seç → doğrula, çık, 10 sn sonra dön → sormamalı; 40 sn sonra dön → sormalı.
 Hata olursa: ne yaptın, ekranda ne yazdı, telefon modeli + Android sürümü.
+
+## 0.2.0 Uygulama içi yüz tanıma testleri (test sürümünde ekranda "benzerlik / canlılık / göz" değerleri görünür; bunları bana yaz)
+**Y1 Kayıt.** Aç → PIN gir → "Yüz kaydet" → kamera izni ver → PIN → kameraya düz bak, 5/5 dolmalı.
+**Y2 Açma.** Kilitli uygulamayı aç → kamera çıkar, yüzünle açılmalı. Süre (hızlı/yavaş) ve ekrandaki benzerlik değeri?
+**Y3 Fotoğraf saldırısı.** Başka bir telefonda/kâğıtta kendi fotoğrafını kameraya göster → AÇILMAMALI. Canlılık değeri kaç?
+**Y4 Video saldırısı.** Başka telefonda kendi videonu oynat → açılıyor mu? (Bilinen risk; sonucu yaz.)
+**Y5 Başka kişi.** Başka biri denesin → açılmamalı. Benzerlik değeri kaç?
+**Y6 Gözler kapalı.** Gözlerin kapalıyken → açılmamalı.
+**Y7 Karanlık / gözlük / maske.** Her birinde ne oluyor?
+**Y8 Deneme sınırı.** 3 kez başarısız yüz → "Yüzü tekrar dene" kaybolmalı, yalnızca PIN.
+**Y9 Yeniden başlatma.** Telefonu yeniden başlat → ilk açılışta yalnızca PIN istenmeli.
+**Y10 Yüksek güvenlik.** Anahtarı aç → açılışta "göz kırp / başını çevir / gülümse" istenmeli; yapmadan açılmamalı.

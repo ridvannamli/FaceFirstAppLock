@@ -10,8 +10,9 @@ android {
         applicationId = "com.facefirst.applock"
         minSdk = 29
         targetSdk = 36
-        versionCode = 5
-        versionName = "0.1.4"
+        versionCode = 6
+        versionName = "0.2.0"
+        ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") } // emülatör (x86) ikilileri APK'yı şişirmesin
         // Genel (gizli olmayan) Worker adresi: ./gradlew -PrecoveryUrl=https://... ; boşsa kurtarma devre dışı.
         buildConfigField("String", "RECOVERY_URL", "\"${providers.gradleProperty("recoveryUrl").getOrElse("")}\"")
     }
@@ -29,6 +30,10 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.11.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.4")
     implementation("androidx.datastore:datastore-preferences:1.1.7")
-    implementation("androidx.biometric:biometric:1.1.0")
+    implementation("androidx.camera:camera-camera2:1.5.3")
+    implementation("androidx.camera:camera-lifecycle:1.5.3")
+    implementation("androidx.camera:camera-view:1.5.3")
+    implementation("com.google.mlkit:face-detection:16.1.7")
+    implementation("org.tensorflow:tensorflow-lite:2.17.0")
     testImplementation("junit:junit:4.13.2")
 }

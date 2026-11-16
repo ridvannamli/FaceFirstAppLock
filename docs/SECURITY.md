@@ -8,3 +8,12 @@ Biyometrik veri/şablon saklanmaz. PIN: salt + PBKDF2, Keystore ile sarma, artan
 - allowBackup=false: PIN hash'i/anahtarlar yedeğe girmez. Keystore anahtarları cihazdan çıkmaz.
 - Kendi ayarlarımız: açılışta doğrulama, uygulamadan çıkınca yeniden doğrulama; korumayı kapatmak PIN ister.
 - Erişilebilirlik: canRetrieveWindowContent=false, yalnızca typeWindowStateChanged; paket adı dışında veri okunmaz.
+
+## Uygulama içi yüz tanıma (0.2.0)
+- Kareler yalnızca bellekte işlenir; kaydedilmez, ağa gönderilmez (modeller cihazda çalışır, internet izni kullanılmaz).
+- Şablonlar (5 adet, 128 boyut) Keystore AES-256-GCM ile şifreli; anahtar cihazdan çıkmaz; yedekleme kapalı.
+- Kabul koşulu: tek yüz, yeterli yakınlık ve ışık, düz bakış, iki göz açık, canlılık ≥ eşik, benzerlik ≥ eşik; art arda 3 kare.
+- Deneme sınırı: her yüz denemesi başlarken sayılır (yarıda bırakma/yeniden açma sınırsız deneme vermez); 3 başarısız denemeden sonra yalnızca PIN. PIN girişi ve başarılı yüz sayacı sıfırlar.
+- PIN zorunluluğu: cihaz yeniden başladıktan sonra ve son PIN girişinden 48 saat sonra yüz kabul edilmez.
+- Yüz kaydı/değişimi PIN ister. Yüksek güvenlik modunda rastgele hareket + yüz takibi.
+- Bilinen açıklar: docs/LIMITATIONS.md.

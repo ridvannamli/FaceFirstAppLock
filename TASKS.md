@@ -11,3 +11,5 @@
 - [x] F9 (otomatik kısım; cihaz testi bekliyor) Testler/performans [cihaz testi]
 - [x] F10 Debug APK, release talimatı, kılavuz
 Gerçek cihaz testleri: hepsi "bekleniyor".
+- [x] Y (0.2.0) Uygulama içi yüz tanıma: kayıt, eşleşme, canlılık, deneme sınırı, periyodik PIN, yüksek güvenlik modu (kod; cihaz testi bekliyor)
+- [ ] Y-kalibrasyon: cihaz ölçümleriyle eşikler; uygulama bazlı güvenlik seviyesi

@@ -8,7 +8,8 @@
 3. Ana ekrandaki "Erişilebilirlik ayarlarını aç" ile bu uygulamanın servisini aç. Anahtar gri ise: Ayarlar > Uygulamalar > FaceFirst Kilit > ⋮ > "Kısıtlı ayara izin ver", sonra tekrar dene. Servis yalnızca hangi uygulamanın açıldığını (paket adı) görür; ekran içeriği okunmaz.
 4. Listeden kilitlenecek uygulamaları seç (arama, "Görünenleri kilitle" ile toplu).
 ## Kullanım
-- Kilitli uygulama açılınca önce yüz/parmak izi (telefonun sunduğu), olmazsa PIN.
+- Yüz kaydı: ana ekranda "Yüz kaydet" (kamera izni ve PIN ister).
+- Kilitli uygulama açılınca önce uygulamanın kendi yüz tanıması, olmazsa PIN. Parmak izi kullanılmaz. Yeniden başlatma sonrası ve 48 saatte bir PIN istenir.
 - "PIN'imi unuttum": e-postaya kod → doğrula → yeni PIN. Önceki kilit açma oturumları sıfırlanır, bildirim e-postası gider.
 - Doğrulama süresi: genel ve uygulama bazlı (her girişte, ekran kapanana dek, 30 sn, 1/5/10 dk).
 - Korumayı kapatmak ve PIN/e-posta değiştirmek doğrulama ister. Bu uygulamanın kendi ekranı da kilitlidir.

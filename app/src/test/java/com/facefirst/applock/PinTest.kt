@@ -98,3 +98,35 @@ class PinTest {
         runCatching { runBlocking { r.setPin("123", 4) } }.let { assertTrue(it.isFailure) }
     }
 }
+
+class FacePinGateTest {
+    @get:org.junit.Rule val tmp = org.junit.rules.TemporaryFolder()
+    private val clock = FakeTime()
+    private val pepper = object : Pepper { override fun mac(data: ByteArray) = data.copyOf(32) }
+    private fun repo() = PinRepository(
+        PreferenceDataStoreFactory.create(scope = CoroutineScope(Dispatchers.IO + Job())) { tmp.newFile("f.preferences_pb").also { it.delete() } },
+        pepper, clock, iterations = 1_000,
+    )
+    @Test fun faceAllowedOnlyAfterPinAndUntilRebootOrFails() = runBlocking {
+        val r = repo()
+        assertFalse(r.faceAllowed())
+        r.setPin("1234", 4); assertTrue(r.faceAllowed())
+        repeat(3) { r.recordFaceFail() }; assertFalse(r.faceAllowed())
+        assertEquals(PinResult.Success, r.verify("1234")); assertTrue(r.faceAllowed())   // PIN sayaçları sıfırlar
+        clock.advance(49L * 60 * 60 * 1000); assertFalse(r.faceAllowed())                // 48 saat doldu
+        r.verify("1234"); assertTrue(r.faceAllowed())
+        clock.boot = 2; clock.elapsed = 10; assertFalse(r.faceAllowed())                 // yeniden başlatma
+    }
+    @Test fun attemptsAreCountedAtStartSoAbandoningDoesNotGiveUnlimitedTries() = runBlocking {
+        val r = repo(); r.setPin("1234", 4)
+        assertTrue(r.beginFaceAttempt()); assertTrue(r.beginFaceAttempt()); assertTrue(r.beginFaceAttempt())
+        assertFalse(r.beginFaceAttempt())                      // 3 başarısız/yarıda kalan denemeden sonra yalnız PIN
+        r.verify("1234"); assertTrue(r.beginFaceAttempt())
+        r.recordFaceSuccess(); assertTrue(r.beginFaceAttempt()); assertTrue(r.beginFaceAttempt()); assertTrue(r.beginFaceAttempt())
+    }
+    @Test fun faceSuccessResetsFailCounter() = runBlocking {
+        val r = repo(); r.setPin("1234", 4)
+        r.recordFaceFail(); r.recordFaceFail(); r.recordFaceSuccess(); r.recordFaceFail(); r.recordFaceFail()
+        assertTrue(r.faceAllowed())
+    }
+}

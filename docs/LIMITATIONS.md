@@ -10,3 +10,7 @@
 - Kilit ekranı, hedef uygulamanın ilk karesinden SONRA gelir (olay tabanlı algılama); içerik kısa süre görünebilir. FAZ 9'da gerçek cihazda ölçülecek.
 - Ekran görüntüsü/son uygulamalar önizlemesi FLAG_SECURE ile bu uygulamanın ekranlarında kapalıdır; kilitli HEDEF uygulamaların önizlemesini kontrol edemeyiz.
 - "Sadece yüz" zorlanamaz: Android parmak izini istemden çıkarmaya izin vermez. Parmak izini yalnızca telefon ayarlarından kayıttan silerek devre dışı bırakmak mümkündür (sistem genelini etkiler).
+- UYGULAMA İÇİ YÜZ TANIMA (0.2.0): tek RGB ön kamera kullanır; kızılötesi/derinlik sensörlü sistem yüz kilidi kadar güvenli DEĞİLDİR. Yüksek kaliteli ekran videosu/deepfake canlılık modelini geçebilir; root'lu cihazda sahte kamera görüntüsü verilebilir; ikiz/çok benzer yüzler eşleşebilir. PIN her zaman son savunmadır.
+- Eşleşme (0.60) ve canlılık (0.70) eşikleri masaüstünde halka açık yüz veri kümesiyle kabaca sınandı; gerçek cihazda yanlış kabul/yanlış ret oranı ÖLÇÜLMEDİ.
+- "Sadece yüz zorlanamaz / parmak izi kapatılamaz" maddesi 0.2.0 ile geçersiz: sistem biyometrisi artık kullanılmıyor.
+- Kamera izni verilmezse ya da karanlıkta yüz tanıma çalışmaz, PIN istenir.

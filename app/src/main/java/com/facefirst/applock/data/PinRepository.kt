@@ -48,6 +48,9 @@ class PinRepository(
     private val kDur = longPreferencesKey("lock_dur")
     private val kElapsed = longPreferencesKey("lock_elapsed")
     private val kBoot = intPreferencesKey("lock_boot")
+    private val kOkElapsed = longPreferencesKey("pin_ok_elapsed")
+    private val kOkBoot = intPreferencesKey("pin_ok_boot")
+    private val kFaceFails = intPreferencesKey("face_fails")
 
     val hasPin: Flow<Boolean> = store.data.map { it[kHash] != null }
     val pinLength: Flow<Int> = store.data.map { it[kLen] ?: 4 }
@@ -62,6 +65,7 @@ class PinRepository(
         store.edit {
             it[kSalt] = enc.encodeToString(salt); it[kHash] = enc.encodeToString(hash)
             it[kLen] = length; it[kFailed] = 0; it[kUntil] = 0; it[kDur] = 0
+            val n = time.now(); it[kOkElapsed] = n.elapsed; it[kOkBoot] = n.boot; it[kFaceFails] = 0
         }
     }
 
@@ -81,7 +85,7 @@ class PinRepository(
         val dec = Base64.getDecoder()
         val actual = PinCrypto.hash(pin, dec.decode(p[kSalt]!!), pepper, iterations)
         if (PinCrypto.equalConstantTime(actual, dec.decode(hashStr))) {
-            store.edit { it[kFailed] = 0; it[kUntil] = 0; it[kDur] = 0 }
+            store.edit { it[kFailed] = 0; it[kUntil] = 0; it[kDur] = 0; it[kOkElapsed] = now.elapsed; it[kOkBoot] = now.boot; it[kFaceFails] = 0 }
             return PinResult.Success
         }
         val failed = (p[kFailed] ?: 0) + 1
@@ -93,6 +97,27 @@ class PinRepository(
         }
         return PinResult.Wrong(failed, delay)
     }
+
+    /** Yüzle açma şu an serbest mi? (PIN bu açılışta ve son 48 saatte girildi, yüz hata sınırı aşılmadı.) */
+    suspend fun faceAllowed(now: TimeSnap = time.now()): Boolean {
+        val p = store.data.first()
+        return com.facefirst.applock.face.FaceGate.allowed(p[kOkBoot], p[kOkElapsed], p[kFaceFails] ?: 0, now.boot, now.elapsed)
+    }
+    /**
+     * Yüz denemesi başlatır: izin varsa sayacı HEMEN artırır (yarıda bırakılan/yeniden açılan denemeler de sayılır)
+     * ve true döner. Başarı [recordFaceSuccess] ile, PIN girişi ise kendiliğinden sayacı sıfırlar.
+     */
+    suspend fun beginFaceAttempt(now: TimeSnap = time.now()): Boolean {
+        var ok = false
+        store.edit {
+            val fails = it[kFaceFails] ?: 0
+            ok = com.facefirst.applock.face.FaceGate.allowed(it[kOkBoot], it[kOkElapsed], fails, now.boot, now.elapsed)
+            if (ok) it[kFaceFails] = fails + 1
+        }
+        return ok
+    }
+    suspend fun recordFaceFail() { store.edit { it[kFaceFails] = (it[kFaceFails] ?: 0) + 1 } }
+    suspend fun recordFaceSuccess() { store.edit { it[kFaceFails] = 0 } }
 
     /** Eski PIN doğrulanırsa yenisini kaydeder. */
     suspend fun changePin(old: String, new: String, length: Int, now: TimeSnap = time.now()): PinResult {

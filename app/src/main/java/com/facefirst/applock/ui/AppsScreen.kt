@@ -31,7 +31,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.facefirst.applock.R
 import com.facefirst.applock.data.InstalledApps
-import com.facefirst.applock.lock.BiometricStatus
 import com.facefirst.applock.lock.Policy
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -43,7 +42,11 @@ import androidx.compose.runtime.setValue
 @Composable
 fun AppsScreen(
     protectionOn: Boolean,
-    biometricStatus: BiometricStatus,
+    faceEnrolled: Boolean,
+    challengeOn: Boolean,
+    onEnrollFace: () -> Unit,
+    onDeleteFace: () -> Unit,
+    onToggleChallenge: (Boolean) -> Unit,
     onOpenA11ySettings: () -> Unit,
     onChangePin: () -> Unit,
     recoveryMasked: String?,
@@ -65,16 +68,19 @@ fun AppsScreen(
             TextButton(onClick = onOpenA11ySettings) { Text(stringResource(R.string.open_a11y_settings)) }
         }
         Text(
-            stringResource(
-                when (biometricStatus) {
-                    BiometricStatus.STRONG -> R.string.bio_strong
-                    BiometricStatus.WEAK_ONLY -> R.string.bio_weak
-                    BiometricStatus.NOT_ENROLLED -> R.string.bio_not_enrolled
-                    else -> R.string.bio_none
-                }
-            ),
+            stringResource(if (faceEnrolled) R.string.face_status_on else R.string.face_status_off),
             style = MaterialTheme.typography.bodySmall,
+            color = if (faceEnrolled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
         )
+        Row {
+            TextButton(onClick = onEnrollFace) { Text(stringResource(if (faceEnrolled) R.string.face_reenroll else R.string.face_enroll)) }
+            if (faceEnrolled) TextButton(onClick = onDeleteFace) { Text(stringResource(R.string.face_delete)) }
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(R.string.face_challenge), Modifier.weight(1f), style = MaterialTheme.typography.bodySmall)
+            Switch(checked = challengeOn, onCheckedChange = onToggleChallenge)
+        }
+        Text(stringResource(R.string.face_rules), style = MaterialTheme.typography.bodySmall)
         Text(
             pluralStringResource(R.plurals.locked_count, s.totalLocked, s.totalLocked),
             style = MaterialTheme.typography.titleMedium,
