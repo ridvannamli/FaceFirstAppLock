@@ -8,10 +8,10 @@ android {
     compileSdk = 36
     defaultConfig {
         applicationId = "com.facefirst.applock"
-        minSdk = 28
+        minSdk = 29
         targetSdk = 36
-        versionCode = 4
-        versionName = "0.1.3"
+        versionCode = 5
+        versionName = "0.1.4"
         // Genel (gizli olmayan) Worker adresi: ./gradlew -PrecoveryUrl=https://... ; boşsa kurtarma devre dışı.
         buildConfigField("String", "RECOVERY_URL", "\"${providers.gradleProperty("recoveryUrl").getOrElse("")}\"")
     }
