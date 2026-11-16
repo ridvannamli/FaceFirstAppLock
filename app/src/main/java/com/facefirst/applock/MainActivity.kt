@@ -36,6 +36,7 @@ import com.facefirst.applock.lock.LockRuntime
 import com.facefirst.applock.ui.AppsScreen
 import com.facefirst.applock.ui.AuthScreen
 import com.facefirst.applock.ui.RecoveryCodeScreen
+import com.facefirst.applock.ui.ResetFlow
 import com.facefirst.applock.ui.FaceEnroll
 import com.facefirst.applock.ui.PinFlow
 import com.facefirst.applock.ui.PinGate
@@ -51,6 +52,7 @@ class MainActivity : ComponentActivity() {
     private var shownCode by mutableStateOf<String?>(null) // bir kez gösterilecek kurtarma kodu
     private var enrollStep by mutableStateOf(0)      // 0 yok, 1 PIN kapısı, 2 yüz kaydı
     private var disableStep by mutableStateOf(false) // genel korumayı kapatmadan önce PIN kapısı
+    private var resetting by mutableStateOf(false)    // giriş ekranından "PIN'imi unuttum"
     private var guardOffStep by mutableStateOf(false) // kaldırma korumasını kapatmadan önce PIN kapısı
     private var authed by mutableStateOf(false)      // uygulamanın kendi ayarları da korunur
     private var resumes by mutableIntStateOf(0)
@@ -78,10 +80,14 @@ class MainActivity : ComponentActivity() {
                             requireOld = false, verifyOld = { PinResult.NotSet },
                             save = { pin, l, _ -> repo.setPin(pin, l); shownCode = repo.newRecoveryCode(); authed = true }, onCancel = null,
                         )
+                        !authed && resetting -> ResetFlow(
+                            repo = repo, onCancel = { resetting = false },
+                            onFinished = { resetting = false; LockRuntime.machine?.resetSessions(); authed = true },
+                        )
                         !authed -> key(resumes) {
                             AuthScreen(
                                 pinRepo = repo, title = stringResource(R.string.app_name), challengeOn = ch,
-                                onSuccess = { authed = true }, onCancel = { finish() }, onForgot = null,
+                                onSuccess = { authed = true }, onCancel = { finish() }, onForgot = { resetting = true },
                             )
                         }
                         shownCode != null -> RecoveryCodeScreen(shownCode.orEmpty()) { shownCode = null }
