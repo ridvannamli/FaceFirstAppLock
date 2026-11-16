@@ -6,3 +6,4 @@ Derleme: Android SDK /opt/android-sdk (oturum sıfırlanırsa `docs/ENV_SETUP.md
 Bildirim kuralı (kullanıcı, 2026-11-07): Faz geçişlerinde PushNotification GÖNDERME. Yalnızca: telefon testi için kullanıcı gerekiyorsa, engel/bilgi gerekiyorsa, iş uçtan uca bittiyse.
 Devam notu: Oturum başında `07_DURUM.md` içindeki "KALDIĞIMIZ YERİ" bölümünü oku ve oradan sürdür; kullanıcı telefon adımlarını yapınca sonucu bekle, tahminle kod değiştirme.
 Yüz tanıma (kullanıcı kararı 2026-11-16): docs/BRIEF.md'deki "özel kamera yüz tanıma yapma/şablon saklama" ve sistem BiometricPrompt maddeleri GEÇERSİZ; uygulama içi yüz tanıma + PIN kullanılır, parmak izi yok (docs/DECISIONS.md #10). Eşik değişiklikleri cihaz ölçümüne dayanmalı.
+PIN kurtarma (kullanıcı kararı 2026-11-16): Google ile giriş + telefon ekran kilidi + yüz (docs/DECISIONS.md #11); e-posta kodu/sunucu yok. İstemci kimliği gizli değildir, `gradle.properties` içine yazılabilir; istemci GİZLİ ANAHTARI asla istenmez/yazılmaz.

@@ -168,6 +168,30 @@ fun AuthScreen(
     }
 }
 
+/** Tek seferlik yüz doğrulaması (PIN sıfırlama gibi akışlar için); sonuç bir kez bildirilir. */
+@Composable
+fun FaceCheck(templates: List<FloatArray>, challenge: Challenge?, onResult: (Boolean) -> Unit) {
+    var hint by remember { mutableStateOf(Hint.NO_FACE) }
+    var debug by remember { mutableStateOf("") }
+    var finished by remember { mutableStateOf(false) }
+    val session = remember { FaceSession(FaceConfig(), challenge, SystemClock.elapsedRealtime()) }
+    fun end(ok: Boolean) { if (!finished) { finished = true; onResult(ok) } }
+    LaunchedEffect(Unit) {
+        while (!finished) { delay(500); if (session.onTick(SystemClock.elapsedRealtime()) is FaceOutcome.Failed) end(false) }
+    }
+    FaceCamera(templates, Modifier.padding(vertical = 16.dp).size(240.dp).clip(CircleShape)) { o, _ ->
+        if (finished) return@FaceCamera
+        if (BuildConfig.DEBUG) debug = debugLine(o)
+        when (val r = session.onFrame(o, SystemClock.elapsedRealtime())) {
+            is FaceOutcome.Pending -> hint = r.hint
+            FaceOutcome.Success -> end(true)
+            is FaceOutcome.Failed -> end(false)
+        }
+    }
+    Text(stringResource(hintRes(hint)), style = MaterialTheme.typography.bodyLarge)
+    if (BuildConfig.DEBUG) Text(debug, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.tertiary)
+}
+
 /** Yüz kaydı: canlılık kontrolünden geçen [COUNT] kare alınır; fotoğraf saklanmaz, yalnızca şablonlar döner. */
 @Composable
 fun FaceEnroll(onDone: (List<FloatArray>) -> Unit, onCancel: () -> Unit) {

@@ -25,3 +25,10 @@ Hata olursa: ne yaptın, ekranda ne yazdı, telefon modeli + Android sürümü.
 **Y8 Deneme sınırı.** 3 kez başarısız yüz → "Yüzü tekrar dene" kaybolmalı, yalnızca PIN.
 **Y9 Yeniden başlatma.** Telefonu yeniden başlat → ilk açılışta yalnızca PIN istenmeli.
 **Y10 Yüksek güvenlik.** Anahtarı aç → açılışta "göz kırp / başını çevir / gülümse" istenmeli; yapmadan açılmamalı.
+
+## 0.3.0 Google ile PIN sıfırlama (Google Cloud kurulumu ve istemci kimlikli APK gerekir)
+**G1 Bağlama.** Ana ekran → "Google hesabını bağla" → hesabını seç → ana ekranda "PIN kurtarma: r***@gmail.com" yazmalı.
+**G2 Sıfırlama.** Kilit ekranında PIN'e geç → "PIN'imi unuttum" → telefon ekran kilidi → Google hesabı → yüz → yeni PIN. Eski PIN çalışmamalı.
+**G3 Yanlış hesap.** Başka bir Google hesabı seç → "bağlı hesap değil" demeli.
+**G4 Yanlış yüz / fotoğraf.** Yüz adımında başka kişi ya da fotoğraf → sıfırlama iptal olmalı.
+(Eski T5 "e-posta kodu" testi geçersiz.)

@@ -10,11 +10,11 @@ android {
         applicationId = "com.facefirst.applock"
         minSdk = 29
         targetSdk = 36
-        versionCode = 6
-        versionName = "0.2.0"
+        versionCode = 7
+        versionName = "0.3.0"
         ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") } // emülatör (x86) ikilileri APK'yı şişirmesin
-        // Genel (gizli olmayan) Worker adresi: ./gradlew -PrecoveryUrl=https://... ; boşsa kurtarma devre dışı.
-        buildConfigField("String", "RECOVERY_URL", "\"${providers.gradleProperty("recoveryUrl").getOrElse("")}\"")
+        // Google "web istemci kimliği" (gizli değildir): gradle.properties içinde googleClientId=... ; boşsa Google ile sıfırlama kapalı.
+        buildConfigField("String", "GOOGLE_CLIENT_ID", "\"${providers.gradleProperty("googleClientId").getOrElse("")}\"")
     }
     buildTypes {
         release { isMinifyEnabled = true; proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt")) }
@@ -35,5 +35,8 @@ dependencies {
     implementation("androidx.camera:camera-view:1.5.3")
     implementation("com.google.mlkit:face-detection:16.1.7")
     implementation("org.tensorflow:tensorflow-lite:2.17.0")
+    implementation("androidx.credentials:credentials:1.5.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.5.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
     testImplementation("junit:junit:4.13.2")
 }

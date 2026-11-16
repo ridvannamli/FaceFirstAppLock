@@ -30,13 +30,14 @@ import androidx.lifecycle.lifecycleScope
 import com.facefirst.applock.data.PinRepository
 import com.facefirst.applock.data.PinResult
 import com.facefirst.applock.data.PolicyRepository
-import com.facefirst.applock.data.RecoveryClient
+import com.facefirst.applock.data.GoogleAuth
+import com.facefirst.applock.data.GoogleLinkStore
 import com.facefirst.applock.face.FaceStore
 import com.facefirst.applock.lock.LockAccessibilityService
 import com.facefirst.applock.lock.LockRuntime
 import com.facefirst.applock.ui.AppsScreen
 import com.facefirst.applock.ui.AuthScreen
-import com.facefirst.applock.ui.EmailFlow
+import com.facefirst.applock.ui.GoogleLinkFlow
 import com.facefirst.applock.ui.FaceEnroll
 import com.facefirst.applock.ui.PinFlow
 import com.facefirst.applock.ui.PinGate
@@ -45,11 +46,12 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
     private val repo by lazy { PinRepository.create(this) }
     private val policies by lazy { PolicyRepository(this) }
-    private val recovery by lazy { RecoveryClient(this) }
+    private val gAuth = GoogleAuth()
+    private val gStore by lazy { GoogleLinkStore(this) }
     private val faceStore by lazy { FaceStore(this) }
     private var protectionOn by mutableStateOf(false)
     private var changing by mutableStateOf(false)
-    private var emailStep by mutableStateOf(0)       // 0 yok, 1 PIN kapısı, 2 e-posta akışı
+    private var emailStep by mutableStateOf(0)       // 0 yok, 1 PIN kapısı, 2 Google hesabı bağlama
     private var enrollStep by mutableStateOf(0)      // 0 yok, 1 PIN kapısı, 2 yüz kaydı
     private var disableStep by mutableStateOf(false) // genel korumayı kapatmadan önce PIN kapısı
     private var skipRecovery by mutableStateOf(false)
@@ -66,7 +68,7 @@ class MainActivity : ComponentActivity() {
                 Surface(Modifier.safeDrawingPadding()) {
                     val hasPin by repo.hasPin.collectAsState(initial = null)
                     val len by repo.pinLength.collectAsState(initial = 4)
-                    val masked by recovery.maskedEmail.collectAsState(initial = "…")
+                    val masked by gStore.masked.collectAsState(initial = "…")
                     val challenge by policies.faceChallenge.collectAsState(initial = null)
                     val cameraPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
                         if (ok) enrollStep = 1
@@ -100,13 +102,13 @@ class MainActivity : ComponentActivity() {
                             onCancel = { enrollStep = 0 },
                         )
                         emailStep == 1 -> PinGate(repo, len, onSuccess = { emailStep = 2 }, onCancel = { emailStep = 0 })
-                        emailStep == 2 || (masked.isNullOrBlank() && !skipRecovery && recovery.enabled) -> EmailFlow(
-                            recovery, onDone = { emailStep = 0 },
-                            onSkip = if (emailStep == 2) null else ({ skipRecovery = true }),
+                        emailStep == 2 || (masked.isNullOrBlank() && !skipRecovery && gAuth.enabled) -> GoogleLinkFlow(
+                            gAuth, gStore, onDone = { emailStep = 0 },
+                            onSkip = { if (emailStep == 2) emailStep = 0 else skipRecovery = true },
                         )
                         else -> AppsScreen(
                             recoveryMasked = masked?.takeIf { it.isNotBlank() },
-                            recoveryEnabled = recovery.enabled,
+                            recoveryEnabled = gAuth.enabled,
                             onChangeEmail = { emailStep = if (masked.isNullOrBlank()) 2 else 1 },
                             protectionOn = protectionOn,
                             faceEnrolled = faceEnrolled,

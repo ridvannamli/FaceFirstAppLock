@@ -18,3 +18,9 @@ Biyometrik veri/şablon saklanmaz. PIN: salt + PBKDF2, Keystore ile sarma, artan
 - PIN zorunluluğu: cihaz yeniden başladıktan sonra ve son PIN girişinden 48 saat sonra yüz kabul edilmez.
 - Yüz kaydı/değişimi PIN ister. Yüksek güvenlik modunda rastgele hareket + yüz takibi.
 - Bilinen açıklar: docs/LIMITATIONS.md.
+
+## Google ile PIN sıfırlama (0.3.0)
+- Bağlama: Google girişi → hesabın kimliği (sub) ve maskeli e-posta yalnızca cihazda saklanır. Hesabı değiştirmek PIN ister.
+- Sıfırlama sırası: (1) telefonun ekran kilidi (Android 11+: yalnızca PIN/desen/şifre), (2) aynı Google hesabıyla giriş, (3) yüz kayıtlıysa canlılık + rastgele hareketli yüz doğrulaması → yeni PIN; önceki kilit açma oturumları sıfırlanır.
+- Belirteç kontrolleri: hedef kitle (istemci kimliği), yayıncı, süre, tek kullanımlık nonce (birim testli). İmza cihazda ayrıca doğrulanmaz; belirteç Google Play Hizmetleri'nden doğrudan alınır.
+- Neden üç etken: Google hesabı telefonda zaten açıktır; tek başına Google girişi, telefonu eline alan herkese PIN'i sıfırlatırdı.
