@@ -17,6 +17,7 @@ class PolicyRepository(private val context: Context) {
     private val kOverrides = stringSetPreferencesKey("overrides")   // "paket|politika"
     private val kEnabled = booleanPreferencesKey("enabled")
     private val kChallenge = booleanPreferencesKey("face_challenge")
+    private val kGuard = booleanPreferencesKey("uninstall_guard")
     private val store get() = context.applicationContext.policyStore
 
     val global: Flow<Policy> = store.data.map { Policy.from(it[kGlobal]) }
@@ -27,6 +28,9 @@ class PolicyRepository(private val context: Context) {
     /** Yüksek güvenlik: yüz eşleşmesinden sonra rastgele hareket (göz kırp / başı çevir / gülümse) istenir. */
     val faceChallenge: Flow<Boolean> = store.data.map { it[kChallenge] ?: false }
     suspend fun setFaceChallenge(v: Boolean) { store.edit { it[kChallenge] = v } }
+    /** Kaldırma koruması: Ayarlar, Play Store ve sistemin kaldırma/yükleme penceresi de kilitlenir. */
+    val uninstallGuard: Flow<Boolean> = store.data.map { it[kGuard] ?: false }
+    suspend fun setUninstallGuard(v: Boolean) { store.edit { it[kGuard] = v } }
 
     suspend fun setGlobal(p: Policy) { store.edit { it[kGlobal] = p.key } }
     suspend fun setEnabled(v: Boolean) { store.edit { it[kEnabled] = v } }

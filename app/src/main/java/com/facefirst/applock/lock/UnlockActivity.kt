@@ -74,7 +74,7 @@ class UnlockActivity : ComponentActivity() {
     }
 
     private fun unlock() {
-        LockRuntime.machine?.onUnlocked(target)
+        LockRuntime.machine?.onUnlocked(target, System.currentTimeMillis())
         packageManager.getLaunchIntentForPackage(target)?.let {
             startActivity(it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         }

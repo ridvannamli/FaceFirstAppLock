@@ -86,4 +86,5 @@
     <string name="rs_need_lock">Önce telefonuna ekran kilidi (PIN, desen veya şifre) koymalısın.</string>
     <string name="rs_lock_failed">Telefon ekran kilidi doğrulanamadı.</string>
     <string name="rs_none">Sıfırlama yolu yok: yüz kayıtlı değil ve kurtarma kodu oluşturulmamış. Tek çare uygulamayı kaldırıp yeniden kurmak.</string>
+    <string name="guard_label">Kaldırma koruması: Ayarlar, Play Store ve uygulama kaldırma/yükleme penceresi de yüz ya da PIN ister. Kapatmak PIN ister.</string>
 </resources>

@@ -25,3 +25,7 @@ Biyometrik veri/şablon saklanmaz. PIN: salt + PBKDF2, Keystore ile sarma, artan
 - Ortak koruma: 5 hatalı denemeden sonra artan bekleme (30 sn → 30 dk), saat oynamasına dayanıklı. Başarılı sıfırlama önceki kilit açma oturumlarını sıfırlar.
 - Ağ kullanılmaz; hesap ya da e-posta bilgisi tutulmaz.
 
+## Kaldırma koruması (0.4.0)
+- Açıkken kilitlenenler: Ayarlar (kaldırma, zorla durdurma, erişilebilirlik izni), Play Store, sistemin kaldırma/yükleme onay penceresi.
+- Kaldırma penceresi kilit ekranından önce kısa süre görünür; "Tamam"a basılamasın diye servis pencereyi hemen kapatır (yarış: çok hızlı dokunuş teorik olarak önce davranabilir; cihazda ÖLÇÜLMEDİ).
+- Yan etki: APK kurma/güncelleme penceresi de aynı pakete ait olduğundan doğrulama ister.

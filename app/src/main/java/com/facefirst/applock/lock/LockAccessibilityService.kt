@@ -28,6 +28,7 @@ class LockAccessibilityService : AccessibilityService() {
     @Volatile private var ime: Set<String> = emptySet()
     @Volatile private var globalPolicy: Policy = Policy.EVERY_ENTRY
     @Volatile private var overrides: Map<String, Policy> = emptyMap()
+    @Volatile private var guardInstallers: Set<String> = emptySet() // koruma açıkken dolu
 
     private val screenOff = object : BroadcastReceiver() {
         override fun onReceive(c: Context?, i: Intent?) { LockRuntime.machine?.onScreenOff() }
@@ -38,7 +39,8 @@ class LockAccessibilityService : AccessibilityService() {
         LockRuntime.machine = LockStateMachine(
             ignored = { ime + setOf(packageName, "com.android.systemui") },
             lockedProvider = { locked },
-            policyOf = { overrides[it] ?: globalPolicy },
+            // Kaldırma penceresi her girişte doğrulama ister (güven süresi verilmez).
+            policyOf = { if (it in guardInstallers) Policy.EVERY_ENTRY else overrides[it] ?: globalPolicy },
         )
         LockRuntime.serviceConnected = true
         if (BuildConfig.DEBUG) LockRuntime.diag.value = Diag(connected = true)
@@ -50,7 +52,16 @@ class LockAccessibilityService : AccessibilityService() {
                 LockedAppsRepository(applicationContext).lockedPackages,
                 PinRepository.create(applicationContext).hasPin,
                 pol.enabled,
-            ) { apps, hasPin, on -> if (hasPin && on) apps else emptySet() }.collect { locked = it }
+                pol.uninstallGuard,
+            ) { apps, hasPin, on, guard ->
+                val active = hasPin && on
+                guardInstallers = if (active && guard) GuardPackages.installers(applicationContext) else emptySet()
+                when {
+                    !active -> emptySet()
+                    guard -> apps + guardInstallers + GuardPackages.others(applicationContext)
+                    else -> apps
+                }
+            }.collect { locked = it }
         }
         registerReceiver(screenOff, IntentFilter(Intent.ACTION_SCREEN_OFF))
     }
@@ -66,6 +77,11 @@ class LockAccessibilityService : AccessibilityService() {
             else -> "kilitli ama doğrulanmış/bekleme"
         }
         if (action is LockAction.ShowLock) {
+            if (pkg in guardInstallers) {
+                // Kaldırma/yükleme onayı: kilit ekranı gelene dek "Tamam"a basılamasın diye pencere hemen kapatılır.
+                performGlobalAction(GLOBAL_ACTION_BACK)
+                decision = "kaldırma penceresi kapatıldı, kilit ekranı açılıyor"
+            }
             try {
                 startActivity(
                     Intent(this, UnlockActivity::class.java)

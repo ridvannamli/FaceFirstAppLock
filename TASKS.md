@@ -15,3 +15,4 @@ Gerçek cihaz testleri: hepsi "bekleniyor".
 - [ ] Y-kalibrasyon: cihaz ölçümleriyle eşikler; uygulama bazlı güvenlik seviyesi
 - [x] G (0.3.0) Google ile PIN sıfırlama kodu (cihaz testi istemci kimliği bekliyor)
 - [x] R (0.3.1) Sunucusuz PIN sıfırlama: ekran kilidi + yüz, kurtarma kodu (cihaz testi bekliyor)
+- [x] K (0.4.0) Kaldırma koruması (cihaz testi bekliyor)

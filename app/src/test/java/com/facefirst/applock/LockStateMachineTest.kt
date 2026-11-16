@@ -97,3 +97,38 @@ class LockPolicyTest {
         assertEquals(show("cal"), m.onWindowChanged("cal", 2_000))
     }
 }
+
+class UninstallGuardTest {
+    private val show = { p: String -> LockAction.ShowLock(p) }
+    private fun sm(locked: Set<String> = setOf("installer", "settings", "cal")) = LockStateMachine(
+        ignored = { setOf("me") }, lockedProvider = { locked },
+        policyOf = { if (it == "installer") com.facefirst.applock.lock.Policy.EVERY_ENTRY else com.facefirst.applock.lock.Policy.T600 },
+    )
+    @Test fun uninstallDialogIsLocked() = assertEquals(show("installer"), sm().onWindowChanged("installer", 0))
+    @Test fun afterDialogDismissedUnlockGivesOneEntryWithinGrace() {
+        val m = sm()
+        m.onWindowChanged("installer", 0)            // pencere göründü, servis hemen kapattı
+        m.onWindowChanged("launcher", 100)           // ana ekrana dönüldü
+        m.onUnlocked("installer", 5_000)             // sahibi doğruladı
+        assertEquals(LockAction.None, m.onWindowChanged("installer", 20_000)) // 60 sn içinde yeniden dener: geçer
+        m.onWindowChanged("launcher", 25_000)
+        assertEquals(show("installer"), m.onWindowChanged("installer", 30_000)) // ikinci kez yeniden sorulur
+    }
+    @Test fun graceExpires() {
+        val m = sm()
+        m.onWindowChanged("installer", 0); m.onWindowChanged("launcher", 100); m.onUnlocked("installer", 5_000)
+        assertEquals(show("installer"), m.onWindowChanged("installer", 5_000 + LockStateMachine.GRACE_MS + 2_000))
+    }
+    @Test fun unlockWhileStillForegroundBehavesAsBefore() {
+        val m = sm()
+        m.onWindowChanged("cal", 0); m.onUnlocked("cal", 1_000)
+        assertEquals(LockAction.None, m.onWindowChanged("cal", 2_000))
+    }
+    @Test fun guardOffMeansInstallerNotLocked() = assertEquals(LockAction.None, sm(setOf("cal")).onWindowChanged("installer", 0))
+    @Test fun mergeIgnoresResolverAndKeepsFallback() {
+        val fb = setOf("a", "b")
+        assertEquals(fb, com.facefirst.applock.lock.GuardPackages.merge("android", fb))
+        assertEquals(fb, com.facefirst.applock.lock.GuardPackages.merge(null, fb))
+        assertEquals(setOf("a", "b", "c"), com.facefirst.applock.lock.GuardPackages.merge("c", fb))
+    }
+}

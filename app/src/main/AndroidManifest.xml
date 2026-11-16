@@ -11,6 +11,15 @@
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
         </intent>
+        <!-- Kaldırma koruması: sistemin kaldırma penceresini, Ayarlar'ı ve Play Store'u tanımak için. -->
+        <intent>
+            <action android:name="android.intent.action.DELETE" />
+            <data android:scheme="package" />
+        </intent>
+        <intent>
+            <action android:name="android.settings.SETTINGS" />
+        </intent>
+        <package android:name="com.android.vending" />
     </queries>
 
     <application

@@ -51,6 +51,7 @@ class MainActivity : ComponentActivity() {
     private var shownCode by mutableStateOf<String?>(null) // bir kez gösterilecek kurtarma kodu
     private var enrollStep by mutableStateOf(0)      // 0 yok, 1 PIN kapısı, 2 yüz kaydı
     private var disableStep by mutableStateOf(false) // genel korumayı kapatmadan önce PIN kapısı
+    private var guardOffStep by mutableStateOf(false) // kaldırma korumasını kapatmadan önce PIN kapısı
     private var authed by mutableStateOf(false)      // uygulamanın kendi ayarları da korunur
     private var resumes by mutableIntStateOf(0)
     private var faceEnrolled by mutableStateOf(false)
@@ -70,6 +71,7 @@ class MainActivity : ComponentActivity() {
                         if (ok) enrollStep = 1
                     }
                     val ch = challenge
+                    val guard by policies.uninstallGuard.collectAsState(initial = false)
                     when {
                         hasPin == null || hasCode == null || ch == null -> {}
                         hasPin == false -> PinFlow(
@@ -92,6 +94,10 @@ class MainActivity : ComponentActivity() {
                             disableStep = false
                             lifecycleScope.launch { policies.setEnabled(false); LockRuntime.machine?.resetSessions() }
                         }, onCancel = { disableStep = false })
+                        guardOffStep -> PinGate(repo, len, onSuccess = {
+                            guardOffStep = false
+                            lifecycleScope.launch { policies.setUninstallGuard(false) }
+                        }, onCancel = { guardOffStep = false })
                         // Yüz kaydı/değişimi her zaman PIN ister (yüzle yüz değiştirilemez).
                         enrollStep == 1 -> PinGate(repo, len, onSuccess = { enrollStep = 2 }, onCancel = { enrollStep = 0 })
                         enrollStep == 2 -> FaceEnroll(
@@ -117,6 +123,8 @@ class MainActivity : ComponentActivity() {
                             onOpenA11ySettings = { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) },
                             onChangePin = { changing = true },
                             onRequestDisable = { disableStep = true },
+                            guardOn = guard,
+                            onToggleGuard = { on -> if (on) lifecycleScope.launch { policies.setUninstallGuard(true) } else guardOffStep = true },
                         )
                     }
                 }

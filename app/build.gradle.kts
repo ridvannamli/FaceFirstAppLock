@@ -10,8 +10,8 @@ android {
         applicationId = "com.facefirst.applock"
         minSdk = 29
         targetSdk = 36
-        versionCode = 8
-        versionName = "0.3.1"
+        versionCode = 9
+        versionName = "0.4.0"
         ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") } // emülatör (x86) ikilileri APK'yı şişirmesin
     }
     buildTypes {

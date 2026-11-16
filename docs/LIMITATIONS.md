@@ -17,3 +17,6 @@
 - PIN sıfırlama (0.3.1): yüz kayıtlı değilse VE kurtarma kodu kaybolduysa PIN sıfırlanamaz; tek çare uygulamayı kaldırıp yeniden kurmaktır (tüm ayarlar silinir).
 - Telefonun ekran kilidini bilen biri yüz doğrulamasını (ör. yüksek kaliteli video ile) aşabilirse PIN'i sıfırlayabilir. Kurtarma kodunu gören herkes PIN'i sıfırlayabilir.
 - Yüz kaydı ve kurtarma kodu cihaza bağlıdır; telefon değişince taşınmaz.
+- Kaldırma koruması (0.4.0) şunları ENGELLEYEMEZ: güvenli modda açılış (üçüncü taraf uygulamalar ve erişilebilirlik servisi devre dışı kalır), USB hata ayıklama ile bilgisayardan kaldırma, fabrika ayarlarına dönüş, üretici pil yöneticisinin servisi öldürmesi. Asıl savunma telefonun ekran kilididir.
+- Kaldırma penceresinin paket adı üreticiye göre değişebilir; Samsung A53'te doğru paketin yakalandığı cihazda DOĞRULANMADI (test K1).
+- Koruma açıkken kilit ekranı arızalanırsa Ayarlar'a girilemeyebilir; çıkış yolu: uygulamadan korumayı kapatmak (PIN) ya da telefonu güvenli modda açmak.

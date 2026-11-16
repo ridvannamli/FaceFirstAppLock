@@ -18,6 +18,8 @@ class LockStateMachine(
     private var lastShownPkg: String? = null
     private var lastShownAt = 0L
 
+    companion object { const val GRACE_MS = 60_000L }
+
     @Synchronized
     fun onWindowChanged(pkg: String, now: Long): LockAction {
         if (pkg in ignored()) return LockAction.None
@@ -46,7 +48,14 @@ class LockStateMachine(
         return LockAction.ShowLock(pkg)
     }
 
-    @Synchronized fun onUnlocked(pkg: String) { unlockedNow.add(pkg); validUntil.remove(pkg); lastShownPkg = null }
+    /**
+     * Doğrulama başarılı. Paket hâlâ öndeyse oturum açılır; önde değilse (ör. kaldırma penceresi kilit gelmeden
+     * kapatıldıysa) yalnızca [GRACE_MS] süreli tek girişlik izin verilir, süresiz açık kalmaz.
+     */
+    @Synchronized fun onUnlocked(pkg: String, now: Long = 0L) {
+        lastShownPkg = null
+        if (pkg == foreground) { unlockedNow.add(pkg); validUntil.remove(pkg) } else validUntil[pkg] = now + GRACE_MS
+    }
 
     /** Ekran kapandı veya PIN sıfırlandı: tüm doğrulamalar iptal. */
     @Synchronized fun onScreenOff() { unlockedNow.clear(); validUntil.clear(); foreground = null; lastShownPkg = null }

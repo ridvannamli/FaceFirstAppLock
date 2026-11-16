@@ -52,6 +52,8 @@ fun AppsScreen(
     hasRecoveryCode: Boolean,
     onNewCode: () -> Unit,
     onRequestDisable: () -> Unit,
+    guardOn: Boolean,
+    onToggleGuard: (Boolean) -> Unit,
     vm: AppsViewModel = viewModel(),
 ) {
     val s by vm.state.collectAsState()
@@ -106,6 +108,10 @@ fun AppsScreen(
         } else {
             Text(stringResource(R.string.protection_paused), color = MaterialTheme.colorScheme.error)
             TextButton(onClick = vm::enable) { Text(stringResource(R.string.protection_resume)) }
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(R.string.guard_label), Modifier.weight(1f), style = MaterialTheme.typography.bodySmall)
+            Switch(checked = guardOn, onCheckedChange = onToggleGuard)
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(stringResource(R.string.policy_global_label), style = MaterialTheme.typography.bodySmall)

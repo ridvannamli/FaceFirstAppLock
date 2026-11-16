@@ -33,3 +33,11 @@ Hata olursa: ne yaptın, ekranda ne yazdı, telefon modeli + Android sürümü.
 **R4 Yanlış kod.** 5 kez yanlış kod → bekleme mesajı; bekleme sırasında doğru kod da reddedilmeli.
 **R5 Yüz saldırısı.** R3'te fotoğraf/başka kişi → "Yüz doğrulanamadı", PIN değişmemeli.
 (Eski T5 "e-posta kodu" ve G1-G4 testleri geçersiz.)
+
+## 0.4.0 Kaldırma koruması (ana ekrandaki anahtarı aç)
+**K1 Ana ekrandan kaldırma.** FaceFirst Kilit simgesine basılı tut → Kaldır → pencere hemen kapanmalı ve kilit ekranı gelmeli. Gelmezse FaceFirst'i aç, TEŞHİS satırındaki "son:" paket adını bana yaz.
+**K2 Ayarlar.** Ayarlar'ı aç → kilit ekranı gelmeli. Doğrulayınca Ayarlar açılmalı.
+**K3 Play Store.** Play Store'u aç → kilit ekranı gelmeli.
+**K4 Sahibi kaldırabilmeli.** K1'de doğrula → 1 dakika içinde yeniden "Kaldır" de → bu kez pencere kalmalı (İptal'e bas, gerçekten kaldırma).
+**K5 Hızlı dokunuş.** K1'de pencere çıkar çıkmaz "Tamam"a en hızlı şekilde bas → uygulama kaldırılabildi mi? (Yarış testi; sonucu yaz.)
+**K6 Korumayı kapatma.** Anahtarı kapat → PIN istemeli.
