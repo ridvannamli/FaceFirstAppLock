@@ -31,6 +31,7 @@ import com.facefirst.applock.data.PinRepository
 import com.facefirst.applock.data.PinResult
 import com.facefirst.applock.data.PolicyRepository
 import com.facefirst.applock.face.FaceStore
+import com.facefirst.applock.lock.AppDeviceAdmin
 import com.facefirst.applock.lock.LockAccessibilityService
 import com.facefirst.applock.lock.LockRuntime
 import com.facefirst.applock.ui.AppsScreen
@@ -54,6 +55,8 @@ class MainActivity : ComponentActivity() {
     private var disableStep by mutableStateOf(false) // genel korumayı kapatmadan önce PIN kapısı
     private var resetting by mutableStateOf(false)    // giriş ekranından "PIN'imi unuttum"
     private var guardOffStep by mutableStateOf(false) // kaldırma korumasını kapatmadan önce PIN kapısı
+    private var adminOffStep by mutableStateOf(false) // cihaz yöneticisini kapatmadan önce PIN kapısı
+    private var adminOn by mutableStateOf(false)
     private var authed by mutableStateOf(false)      // uygulamanın kendi ayarları da korunur
     private var resumes by mutableIntStateOf(0)
     private var faceEnrolled by mutableStateOf(false)
@@ -83,7 +86,7 @@ class MainActivity : ComponentActivity() {
                         resetting -> ResetFlow(
                             repo = repo, onCancel = { resetting = false },
                             onFinished = {
-                                resetting = false; changing = false; disableStep = false; guardOffStep = false; enrollStep = 0; codeStep = false
+                                resetting = false; changing = false; disableStep = false; guardOffStep = false; adminOffStep = false; enrollStep = 0; codeStep = false
                                 LockRuntime.machine?.resetSessions(); authed = true
                             },
                         )
@@ -103,6 +106,10 @@ class MainActivity : ComponentActivity() {
                             disableStep = false
                             lifecycleScope.launch { policies.setEnabled(false); LockRuntime.machine?.resetSessions() }
                         }, onCancel = { disableStep = false }, onForgot = { resetting = true })
+                        adminOffStep -> PinGate(repo, len, onSuccess = {
+                            adminOffStep = false
+                            AppDeviceAdmin.disable(this); adminOn = AppDeviceAdmin.isActive(this)
+                        }, onCancel = { adminOffStep = false }, onForgot = { resetting = true })
                         guardOffStep -> PinGate(repo, len, onSuccess = {
                             guardOffStep = false
                             lifecycleScope.launch { policies.setUninstallGuard(false) }
@@ -133,6 +140,8 @@ class MainActivity : ComponentActivity() {
                             onChangePin = { changing = true },
                             onRequestDisable = { disableStep = true },
                             guardOn = guard,
+                            adminOn = adminOn,
+                            onToggleAdmin = { on -> if (on) startActivity(AppDeviceAdmin.enableIntent(this)) else adminOffStep = true },
                             onToggleGuard = { on -> if (on) lifecycleScope.launch { policies.setUninstallGuard(true) } else guardOffStep = true },
                         )
                     }
@@ -144,6 +153,7 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         protectionOn = isServiceEnabled()
+        adminOn = AppDeviceAdmin.isActive(this)
         resumes++
     }
 

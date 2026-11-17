@@ -29,3 +29,8 @@ Biyometrik veri/şablon saklanmaz. PIN: salt + PBKDF2, Keystore ile sarma, artan
 - Açıkken kilitlenenler: Ayarlar (kaldırma, zorla durdurma, erişilebilirlik izni), Play Store, sistemin kaldırma/yükleme onay penceresi.
 - Kaldırma penceresi kilit ekranından önce kısa süre görünür; "Tamam"a basılamasın diye servis pencereyi hemen kapatır (yarış: çok hızlı dokunuş teorik olarak önce davranabilir; cihazda ÖLÇÜLMEDİ).
 - Yan etki: APK kurma/güncelleme penceresi de aynı pakete ait olduğundan doğrulama ister.
+
+## Cihaz yöneticisi (0.5.0)
+- Etkinken Android uygulamanın kaldırılmasını reddeder; önce yöneticilik kapatılmalıdır. Kaldırma koruması da açıksa bu kapatma işlemi (Ayarlar) kilitlidir: yüz/PIN gerekir.
+- Hiçbir politika istenmez (uses-policies boş): kamera, ekran kilidi, şifre kuralı, veri silme YOK.
+- Uygulama içinden kapatmak PIN ister. Kapatma sırasında sistem uyarı gösterir.

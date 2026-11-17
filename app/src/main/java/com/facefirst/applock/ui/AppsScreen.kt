@@ -54,6 +54,8 @@ fun AppsScreen(
     onRequestDisable: () -> Unit,
     guardOn: Boolean,
     onToggleGuard: (Boolean) -> Unit,
+    adminOn: Boolean,
+    onToggleAdmin: (Boolean) -> Unit,
     vm: AppsViewModel = viewModel(),
 ) {
     val s by vm.state.collectAsState()
@@ -112,6 +114,10 @@ fun AppsScreen(
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(stringResource(R.string.guard_label), Modifier.weight(1f), style = MaterialTheme.typography.bodySmall)
             Switch(checked = guardOn, onCheckedChange = onToggleGuard)
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(R.string.da_label), Modifier.weight(1f), style = MaterialTheme.typography.bodySmall)
+            Switch(checked = adminOn, onCheckedChange = onToggleAdmin)
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(stringResource(R.string.policy_global_label), style = MaterialTheme.typography.bodySmall)

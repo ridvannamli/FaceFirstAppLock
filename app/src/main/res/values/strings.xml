@@ -88,4 +88,7 @@
     <string name="rs_none">Sıfırlama yolu yok: yüz kayıtlı değil ve kurtarma kodu oluşturulmamış. Tek çare uygulamayı kaldırıp yeniden kurmak.</string>
     <string name="guard_label">Kaldırma koruması: Ayarlar, Play Store ve uygulama kaldırma/yükleme penceresi de yüz ya da PIN ister. Kapatmak PIN ister.</string>
     <string name="rs_face_button_alt">Kodu da unuttum: ekran kilidi ve yüz ile sıfırla</string>
+    <string name="da_label">Cihaz yöneticisi: açıkken uygulama kaldırılamaz (önce buradan PIN ile kapatılmalı).</string>
+    <string name="da_explain">FaceFirst Kilit\'in kaldırılmasını engellemek için etkinleştirilir. Kamera, ekran kilidi, veri silme gibi hiçbir cihaz yetkisi kullanılmaz. İstediğin zaman uygulamadan (PIN ile) ya da Ayarlar\'dan kapatabilirsin.</string>
+    <string name="da_disable_warning">Cihaz yöneticiliği kapatılırsa uygulama kaldırılabilir hâle gelir.</string>
 </resources>

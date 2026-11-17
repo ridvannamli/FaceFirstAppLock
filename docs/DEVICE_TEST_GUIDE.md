@@ -41,3 +41,10 @@ Hata olursa: ne yaptın, ekranda ne yazdı, telefon modeli + Android sürümü.
 **K4 Sahibi kaldırabilmeli.** K1'de doğrula → 1 dakika içinde yeniden "Kaldır" de → bu kez pencere kalmalı (İptal'e bas, gerçekten kaldırma).
 **K5 Hızlı dokunuş.** K1'de pencere çıkar çıkmaz "Tamam"a en hızlı şekilde bas → uygulama kaldırılabildi mi? (Yarış testi; sonucu yaz.)
 **K6 Korumayı kapatma.** Anahtarı kapat → PIN istemeli.
+
+## 0.5.0 Cihaz yöneticisi (ana ekrandaki anahtar)
+**D1 Açma.** Anahtarı aç → Android'in "Cihaz yönetici uygulaması etkinleştirilsin mi?" ekranı çıkmalı → "Etkinleştir". Ana ekranda anahtar açık görünmeli.
+**D2 Kaldırma engeli.** (Kaldırma koruması kapalıyken dene.) Simgeye basılı tut → Kaldır → sistem kaldırmayı reddetmeli ya da "önce cihaz yöneticisini kapat" demeli. Kaldırma gerçekleşirse sonucu bana yaz.
+**D3 Ayarlar yolu.** Kaldırma koruması AÇIKKEN Ayarlar > Güvenlik > Cihaz yönetici uygulamaları'na gir → kilit ekranı gelmeli.
+**D4 Uygulamadan kapatma.** Anahtarı kapat → PIN istemeli → kapatınca Kaldır normal çalışmalı.
+**D5 Sıfırlama sonrası.** Cihaz yöneticisi açıkken PIN sıfırlama yine çalışmalı.

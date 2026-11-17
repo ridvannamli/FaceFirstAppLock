@@ -14,5 +14,6 @@
 - Doğrulama süresi: genel ve uygulama bazlı (her girişte, ekran kapanana dek, 30 sn, 1/5/10 dk).
 - Korumayı kapatmak ve PIN/e-posta değiştirmek doğrulama ister. Bu uygulamanın kendi ekranı da kilitlidir.
 - Kaldırma koruması: ana ekrandaki anahtarı açarsan Ayarlar, Play Store ve uygulama kaldırma/yükleme penceresi de yüz ya da PIN ister.
+- Cihaz yöneticisi: ana ekrandaki anahtarı açarsan sistem uygulamanın kaldırılmasını reddeder. Kaldırmak istersen önce uygulamadan (PIN ile) kapat. Kaldırma korumasıyla birlikte kullan.
 ## Sınırlar
 Bkz. docs/LIMITATIONS.md: sistem arayüzü, ana ekran, izin yöneticisi, acil arama kilitlenemez; Android mutlak koruma garantisi vermez; kilit ekranı hedef uygulamadan hemen sonra gelir.
